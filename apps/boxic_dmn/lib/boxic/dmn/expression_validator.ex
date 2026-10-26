@@ -208,11 +208,7 @@ defmodule Boxic.DMN.ExpressionValidator do
       {:error, error} ->
         [
           %Diagnostic{
-            code:
-              if(error.code == :unsupported_profile,
-                do: :unsupported_profile,
-                else: :invalid_feel_syntax
-              ),
+            code: diagnostic_code(error.code),
             category: :feel,
             path: path,
             message: "FEEL #{grammar}: #{error.message}",
@@ -221,7 +217,7 @@ defmodule Boxic.DMN.ExpressionValidator do
                 do: "Boxic wedge_v1 library policy",
                 else: "DMN 1.5"
               ),
-            clause: if(error.code == :unsupported_profile, do: nil, else: "10.3.1.2"),
+            clause: diagnostic_clause(error.code),
             source_profile: model.source_profile,
             cause: error,
             details: %{grammar: grammar, text: text}
@@ -229,6 +225,14 @@ defmodule Boxic.DMN.ExpressionValidator do
         ]
     end
   end
+
+  defp diagnostic_clause(:unsupported_profile), do: nil
+  defp diagnostic_clause(:invalid_number), do: "10.3.2.3.1"
+  defp diagnostic_clause(_code), do: "10.3.1.2"
+
+  defp diagnostic_code(:unsupported_profile), do: :unsupported_profile
+  defp diagnostic_code(:invalid_number), do: :invalid_feel_number
+  defp diagnostic_code(_code), do: :invalid_feel_syntax
 
   defp feel_language?(model, local_declaration) do
     match?(

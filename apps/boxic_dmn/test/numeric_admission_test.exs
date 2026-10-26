@@ -26,4 +26,16 @@ defmodule Boxic.DMN.NumericAdmissionTest do
       assert trace.stage == :input_coercion
     end
   end
+
+  test "an out-of-domain numeric literal is distinguished from malformed grammar" do
+    {:ok, model} =
+      DMN.load_xml("""
+      <definitions xmlns="https://www.omg.org/spec/DMN/20230324/MODEL/" id="n" name="N" namespace="urn:n">
+        <decision id="d" name="D"><literalExpression><text>1e6145</text></literalExpression></decision>
+      </definitions>
+      """)
+
+    assert {:error, [%{code: :invalid_feel_number, clause: "10.3.2.3.1"}]} =
+             DMN.validate(model, for: :evaluation)
+  end
 end

@@ -44,6 +44,11 @@ defmodule Boxic.FEEL.Number do
     end
   end
 
+  def admit(value) when is_tuple(value) do
+    with {:ok, values} <- value |> Tuple.to_list() |> admit(),
+         do: {:ok, List.to_tuple(values)}
+  end
+
   def admit(values) when is_map(values) do
     Enum.reduce_while(Map.to_list(values), {:ok, values}, fn {key, value}, {:ok, acc} ->
       case admit(value) do

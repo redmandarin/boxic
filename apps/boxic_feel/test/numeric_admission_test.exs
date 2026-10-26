@@ -57,7 +57,7 @@ defmodule Boxic.FEEL.NumericAdmissionTest do
   test "nonfinite host results cannot escape admission" do
     registry =
       FEEL.ExternalFunctions.new([
-        {"bad", fn -> [%{"x" => Decimal.new("NaN")}] end, returns: :feel}
+        {"bad", fn -> [%{"x" => {Decimal.new("NaN")}}] end, returns: :feel}
       ])
 
     assert {:error, %FEEL.Error{code: :invalid_number}} =

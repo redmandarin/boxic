@@ -15,7 +15,7 @@ defmodule Boxic.DMN.Evaluator do
   alias Boxic.DMN.Model.ListExpression
   alias Boxic.DMN.Model.Relation
   alias Boxic.DMN.Model.Variable
-  alias Boxic.DMN.{FEEL, Validator}
+  alias Boxic.DMN.{FEEL, Trace, Validator}
   alias Boxic.DMN.DecisionTable, as: DecisionTableEvaluator
   alias Boxic.FEEL.ExternalFunctions
 
@@ -27,38 +27,65 @@ defmodule Boxic.DMN.Evaluator do
 
   @spec evaluate(Model.t(), String.t(), map()) :: {:ok, term()} | {:error, evaluation_error()}
   def evaluate(%Model{} = model, decision_name, context \\ %{})
-      when is_binary(decision_name) and is_map(context) do
-    with :ok <- Validator.validate_for_evaluation(model),
-         {:ok, context} <- coerce_input_context(model, context),
-         {:ok, decision} <- find_decision(model, decision_name),
-         {:ok, value, _memo} <- evaluate_decision(model, decision, context, %{}, %{}) do
-      {:ok, value}
-    end
-  end
+      when is_binary(decision_name) and is_map(context),
+      do: evaluate(model, decision_name, context, [])
 
   @spec evaluate(Model.t(), String.t(), map(), keyword()) ::
           {:ok, term()} | {:error, evaluation_error()}
   def evaluate(%Model{} = model, decision_name, context, opts)
       when is_binary(decision_name) and is_map(context) and is_list(opts) do
-    with {:ok, context} <- attach_external_functions(context, opts) do
-      evaluate(model, decision_name, context)
+    Trace.without_capture(fn -> evaluate_decision_entry(model, decision_name, context, opts) end)
+  end
+
+  def evaluate_with_trace(%Model{} = model, decision_name, context, opts)
+      when is_binary(decision_name) and is_map(context) and is_list(opts) do
+    Trace.capture(model, %{kind: :decision, requested: decision_name}, fn ->
+      evaluate_decision_entry(model, decision_name, context, opts)
+    end)
+  end
+
+  defp evaluate_decision_entry(model, decision_name, context, opts) do
+    with {:ok, context} <- attach_external_functions(context, opts),
+         :ok <- Trace.stage(:preflight),
+         :ok <- Validator.validate_for_evaluation(model),
+         :ok <- Trace.stage(:input_coercion),
+         {:ok, context} <- coerce_input_context(model, context),
+         :ok <- Trace.stage(:lookup),
+         {:ok, decision} <- find_decision(model, decision_name),
+         :ok <- Trace.stage(:evaluation),
+         {:ok, value, _memo} <- evaluate_decision(model, decision, context, %{}, %{}) do
+      {:ok, value}
     end
   end
 
   @spec evaluate_service(Model.t(), String.t(), map() | list()) ::
           {:ok, term()} | {:error, evaluation_error()}
   def evaluate_service(%Model{} = model, service_name, arguments)
-      when is_binary(service_name) and (is_map(arguments) or is_list(arguments)) do
-    evaluate_service(model, service_name, arguments, [])
-  end
+      when is_binary(service_name) and (is_map(arguments) or is_list(arguments)),
+      do: evaluate_service(model, service_name, arguments, [])
 
   @spec evaluate_service(Model.t(), String.t(), map() | list(), keyword()) ::
           {:ok, term()} | {:error, evaluation_error()}
   def evaluate_service(%Model{} = model, service_name, arguments, opts)
       when is_binary(service_name) and (is_map(arguments) or is_list(arguments)) and is_list(opts) do
-    with :ok <- Validator.validate_for_evaluation(model),
+    Trace.without_capture(fn -> evaluate_service_entry(model, service_name, arguments, opts) end)
+  end
+
+  def evaluate_service_with_trace(%Model{} = model, service_name, arguments, opts)
+      when is_binary(service_name) and (is_map(arguments) or is_list(arguments)) and is_list(opts) do
+    Trace.capture(model, %{kind: :service, requested: service_name}, fn ->
+      evaluate_service_entry(model, service_name, arguments, opts)
+    end)
+  end
+
+  defp evaluate_service_entry(model, service_name, arguments, opts) do
+    with :ok <- Trace.stage(:preflight),
+         :ok <- Validator.validate_for_evaluation(model),
+         :ok <- Trace.stage(:options),
          {:ok, outer_context} <- attach_external_functions(%{}, opts),
-         {:ok, service} <- find_service(model, service_name) do
+         :ok <- Trace.stage(:lookup),
+         {:ok, service} <- find_service(model, service_name),
+         :ok <- Trace.stage(:evaluation) do
       args =
         if is_map(arguments),
           do: Enum.map(arguments, fn {name, value} -> {:named_arg, name, value} end),
@@ -89,32 +116,48 @@ defmodule Boxic.DMN.Evaluator do
   end
 
   defp evaluate_decision(model, decision, context, memo, visiting) do
-    cond do
-      Map.has_key?(memo, decision.id) ->
-        {:ok, Map.fetch!(memo, decision.id), memo}
+    Trace.span(
+      :decision,
+      fn -> Map.merge(Trace.node(decision), %{execution: :evaluated}) end,
+      fn ->
+        cond do
+          Map.has_key?(memo, decision.id) ->
+            Trace.annotate(%{execution: :memoized})
+            {:ok, Map.fetch!(memo, decision.id), memo}
 
-      Map.has_key?(visiting, decision.id) ->
-        {:error, {:cyclic_decision_dependency, decision.id}}
+          Map.has_key?(visiting, decision.id) ->
+            {:error, {:cyclic_decision_dependency, decision.id}}
 
-      true ->
-        visiting = Map.put(visiting, decision.id, true)
+          true ->
+            visiting = Map.put(visiting, decision.id, true)
 
-        with :ok <- Validator.validate_for_evaluation(model, decision),
-             {:ok, dependency_context, memo} <-
-               resolve_requirements(model, decision, context, memo, visiting),
-             {:ok, value} <- evaluate_expression(decision.expression, dependency_context, model),
-             {:ok, value} <-
-               coerce_type(value, decision.variable && decision.variable.type_ref, model) do
-          {:ok, value, Map.put(memo, decision.id, value)}
-        else
-          nil -> {:error, {:missing_expression, decision.id}}
-          {:unsupported, kind} -> {:error, {:unsupported_expression, kind}}
-          error -> error
+            with :ok <- Validator.validate_for_evaluation(model, decision),
+                 {:ok, dependency_context, memo} <-
+                   resolve_requirements(model, decision, context, memo, visiting),
+                 {:ok, value} <-
+                   evaluate_expression(decision.expression, dependency_context, model),
+                 {:ok, value} <-
+                   coerce_type(value, decision.variable && decision.variable.type_ref, model) do
+              {:ok, value, Map.put(memo, decision.id, value)}
+            else
+              nil -> {:error, {:missing_expression, decision.id}}
+              {:unsupported, kind} -> {:error, {:unsupported_expression, kind}}
+              error -> error
+            end
         end
-    end
+      end
+    )
   end
 
-  defp evaluate_expression(%LiteralExpression{text: text, type_ref: type_ref}, context, model)
+  defp evaluate_expression(expression, context, model) do
+    Trace.expression(expression, fn -> evaluate_expression_value(expression, context, model) end)
+  end
+
+  defp evaluate_expression_value(
+         %LiteralExpression{text: text, type_ref: type_ref},
+         context,
+         model
+       )
        when is_binary(text) do
     {text, context} = FEEL.normalize_names(text, context)
     context = Map.put(context, "__feel_types__", model.item_definitions)
@@ -124,16 +167,16 @@ defmodule Boxic.DMN.Evaluator do
     end
   end
 
-  defp evaluate_expression(%DecisionTable{} = table, context, _model),
+  defp evaluate_expression_value(%DecisionTable{} = table, context, _model),
     do: DecisionTableEvaluator.evaluate(table, context)
 
-  defp evaluate_expression(%ContextExpression{} = expression, context, model),
+  defp evaluate_expression_value(%ContextExpression{} = expression, context, model),
     do: evaluate_context(expression, context, model)
 
-  defp evaluate_expression(%Invocation{} = invocation, context, model),
+  defp evaluate_expression_value(%Invocation{} = invocation, context, model),
     do: evaluate_invocation(invocation, context, model)
 
-  defp evaluate_expression(%FunctionDefinition{} = function, context, model) do
+  defp evaluate_expression_value(%FunctionDefinition{} = function, context, model) do
     callable =
       {:external_function,
        fn args ->
@@ -151,7 +194,7 @@ defmodule Boxic.DMN.Evaluator do
     {:ok, callable}
   end
 
-  defp evaluate_expression(%Relation{} = relation, context, model) do
+  defp evaluate_expression_value(%Relation{} = relation, context, model) do
     names = Enum.map(relation.columns, & &1.name)
 
     relation.rows
@@ -168,7 +211,7 @@ defmodule Boxic.DMN.Evaluator do
     end)
   end
 
-  defp evaluate_expression(%ListExpression{items: items}, context, model) do
+  defp evaluate_expression_value(%ListExpression{items: items}, context, model) do
     Enum.reduce_while(items, {:ok, []}, fn item, {:ok, values} ->
       case evaluate_expression(item, context, model) do
         {:ok, value} -> {:cont, {:ok, values ++ [value]}}
@@ -177,21 +220,33 @@ defmodule Boxic.DMN.Evaluator do
     end)
   end
 
-  defp evaluate_expression(%ConditionalExpression{} = expression, context, model) do
+  defp evaluate_expression_value(%ConditionalExpression{} = expression, context, model) do
     with {:ok, condition} <- evaluate_expression(expression.condition, context, model) do
       case condition do
-        true -> evaluate_expression(expression.then_branch, context, model)
-        false -> evaluate_expression(expression.else_branch, context, model)
-        nil -> evaluate_expression(expression.else_branch, context, model)
-        _ -> {:error, {:type_error, :boolean}}
+        true ->
+          Trace.skipped(expression.else_branch, :else, :branch_not_selected)
+          evaluate_expression(expression.then_branch, context, model)
+
+        value when value in [false, nil] ->
+          Trace.skipped(expression.then_branch, :then, :branch_not_selected)
+          evaluate_expression(expression.else_branch, context, model)
+
+        _ ->
+          {:error, {:type_error, :boolean}}
       end
     end
   end
 
-  defp evaluate_expression(%FilterExpression{} = expression, context, model) do
+  defp evaluate_expression_value(%FilterExpression{} = expression, context, model) do
     with {:ok, source} <- evaluate_expression(expression.source, context, model),
          true <- is_list(source) do
-      Enum.reduce_while(source, {:ok, []}, fn item, {:ok, result} ->
+      Trace.collection(source)
+
+      source
+      |> Enum.with_index()
+      |> Enum.reduce_while({:ok, []}, fn {item, index}, {:ok, result} ->
+        Trace.iteration(index)
+
         case evaluate_expression(expression.match, bind_boxed_item(context, item), model) do
           {:ok, true} -> {:cont, {:ok, result ++ [item]}}
           {:ok, false} -> {:cont, {:ok, result}}
@@ -205,10 +260,16 @@ defmodule Boxic.DMN.Evaluator do
     end
   end
 
-  defp evaluate_expression(%IteratorExpression{kind: :for} = expression, context, model) do
+  defp evaluate_expression_value(%IteratorExpression{kind: :for} = expression, context, model) do
     with {:ok, source} <- evaluate_expression(expression.source, context, model),
          true <- is_list(source) do
-      Enum.reduce_while(source, {:ok, []}, fn item, {:ok, result} ->
+      Trace.collection(source)
+
+      source
+      |> Enum.with_index()
+      |> Enum.reduce_while({:ok, []}, fn {item, index}, {:ok, result} ->
+        Trace.iteration(index)
+
         case evaluate_expression(
                expression.body,
                Map.put(context, expression.variable, item),
@@ -224,7 +285,7 @@ defmodule Boxic.DMN.Evaluator do
     end
   end
 
-  defp evaluate_expression(%IteratorExpression{} = expression, context, model) do
+  defp evaluate_expression_value(%IteratorExpression{} = expression, context, model) do
     with {:ok, source} <- evaluate_expression(expression.source, context, model),
          true <- is_list(source) do
       evaluate_boxed_quantifier(expression.kind, source, expression, context, model)
@@ -234,15 +295,21 @@ defmodule Boxic.DMN.Evaluator do
     end
   end
 
-  defp evaluate_expression(nil, _context, _model), do: {:error, :missing_expression}
+  defp evaluate_expression_value(nil, _context, _model), do: {:error, :missing_expression}
 
-  defp evaluate_expression({:unsupported, kind}, _context, _model),
+  defp evaluate_expression_value({:unsupported, kind}, _context, _model),
     do: {:error, {:unsupported_expression, kind}}
 
   defp evaluate_boxed_quantifier(kind, source, expression, context, model) do
     initial = if kind == :every, do: true, else: false
 
-    Enum.reduce_while(source, {:ok, initial}, fn item, {:ok, _result} ->
+    Trace.collection(source)
+
+    source
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, initial}, fn {item, index}, {:ok, _result} ->
+      Trace.iteration(index)
+
       case evaluate_expression(
              expression.body,
              Map.put(context, expression.variable, item),
@@ -296,9 +363,19 @@ defmodule Boxic.DMN.Evaluator do
   end
 
   defp resolve_requirements(model, decision, context, memo, visiting) do
-    Enum.reduce_while(decision.requirements, {:ok, context, memo}, fn requirement,
-                                                                      {:ok, acc, memo} ->
-      case resolve_requirement(model, requirement, acc, memo, visiting) do
+    decision.requirements
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, context, memo}, fn {requirement, index}, {:ok, acc, memo} ->
+      result =
+        Trace.span(
+          :dependency,
+          fn ->
+            %{requirement_kind: requirement.kind, reference: requirement.href, position: index}
+          end,
+          fn -> resolve_requirement(model, requirement, acc, memo, visiting) end
+        )
+
+      case result do
         {:ok, next_context, next_memo} -> {:cont, {:ok, next_context, next_memo}}
         {:error, _reason} = error -> {:halt, error}
       end
@@ -313,11 +390,18 @@ defmodule Boxic.DMN.Evaluator do
          visiting
        ) do
     with {:ok, dependency} <- fetch_reference(model.decisions, :decision, id) do
+      Trace.annotate(%{target: Trace.node(dependency)})
+
       case existing_node_value(context, dependency) do
         {:ok, value} ->
+          Trace.annotate(%{resolution: :provided, value: value})
           {:ok, bind_reference_value(context, dependency, value, id, model), memo}
 
         :error ->
+          Trace.annotate(%{
+            resolution: if(Map.has_key?(memo, dependency.id), do: :memoized, else: :evaluated)
+          })
+
           with {:ok, value, memo} <- evaluate_decision(model, dependency, context, memo, visiting) do
             {:ok, bind_reference_value(context, dependency, value, id, model), memo}
           end
@@ -334,12 +418,16 @@ defmodule Boxic.DMN.Evaluator do
        ) do
     case fetch_reference(Map.merge(model.bkms, model.decision_services), :knowledge, id) do
       {:ok, %BusinessKnowledgeModel{} = bkm} ->
+        Trace.annotate(%{target: Trace.node(bkm), resolution: :bound})
+
         callable =
           {:external_function, fn args -> invoke_bkm_from_feel(model, bkm, context, args) end}
 
         {:ok, bind_reference_value(context, bkm, callable, id, model), memo}
 
       {:ok, %DecisionService{} = service} ->
+        Trace.annotate(%{target: Trace.node(service), resolution: :bound})
+
         callable =
           {:external_function,
            fn args -> invoke_decision_service(model, service, context, args) end}
@@ -361,6 +449,7 @@ defmodule Boxic.DMN.Evaluator do
     with {:ok, input} <- fetch_reference(model.input_data, :input_data, id),
          {:ok, value} <- input_value(context, input),
          {:ok, value} <- coerce_type(value, input.variable && input.variable.type_ref, model) do
+      Trace.annotate(%{target: Trace.node(input), resolution: :provided, value: value})
       {:ok, bind_reference_value(context, input, value, id, model), memo}
     end
   end
@@ -460,6 +549,7 @@ defmodule Boxic.DMN.Evaluator do
     with %LiteralExpression{text: function_name} when is_binary(function_name) <-
            invocation.function,
          {:ok, bkm} <- find_bkm(model, String.trim(function_name)),
+         :ok <- Trace.annotate(%{invoked_bkm: Trace.node(bkm)}),
          :ok <- validate_invocation_result_shape(invocation, bkm),
          {:ok, bindings} <- evaluate_bindings(invocation.bindings, context, model),
          :ok <- validate_bkm_arguments(bkm, bindings),
@@ -490,26 +580,28 @@ defmodule Boxic.DMN.Evaluator do
   defp validate_invocation_result_shape(_invocation, _bkm), do: :ok
 
   defp invoke_bkm_from_feel(model, bkm, outer_context, args) do
-    names = Enum.map(bkm.parameters, & &1.name)
+    Trace.span(:bkm, fn -> Trace.node(bkm) end, fn ->
+      names = Enum.map(bkm.parameters, & &1.name)
 
-    self_callable =
-      {:external_function,
-       fn recursive_args -> invoke_bkm_from_feel(model, bkm, outer_context, recursive_args) end}
+      self_callable =
+        {:external_function,
+         fn recursive_args -> invoke_bkm_from_feel(model, bkm, outer_context, recursive_args) end}
 
-    with {:ok, values} <- normalize_service_args(args, names),
-         {:ok, values} <- coerce_parameter_values(values, bkm.parameters, model),
-         {:ok, bkm_context, _memo} <-
-           resolve_requirements(model, bkm, outer_context, %{}, MapSet.new()),
-         {:ok, result} <-
-           evaluate_expression(
-             bkm.expression,
-             bkm_context
-             |> bind_value(bkm, self_callable)
-             |> Map.merge(Map.new(Enum.zip(names, values))),
-             model
-           ) do
-      coerce_type(result, bkm.variable && bkm.variable.type_ref, model)
-    end
+      with {:ok, values} <- normalize_service_args(args, names),
+           {:ok, values} <- coerce_parameter_values(values, bkm.parameters, model),
+           {:ok, bkm_context, _memo} <-
+             resolve_requirements(model, bkm, outer_context, %{}, MapSet.new()),
+           {:ok, result} <-
+             evaluate_expression(
+               bkm.expression,
+               bkm_context
+               |> bind_value(bkm, self_callable)
+               |> Map.merge(Map.new(Enum.zip(names, values))),
+               model
+             ) do
+        coerce_type(result, bkm.variable && bkm.variable.type_ref, model)
+      end
+    end)
   end
 
   defp evaluate_bindings(bindings, context, model) do
@@ -546,17 +638,19 @@ defmodule Boxic.DMN.Evaluator do
   end
 
   defp invoke_decision_service(model, service, outer_context, args) do
-    with {:ok, service_context} <- service_arguments(model, service, args, outer_context),
-         {:ok, outputs, _memo} <-
-           evaluate_service_outputs(model, service.output_decisions, service_context, %{}) do
-      result =
-        case outputs do
-          [{_name, value}] -> value
-          values -> Map.new(values)
-        end
+    Trace.span(:service, fn -> Trace.node(service) end, fn ->
+      with {:ok, service_context} <- service_arguments(model, service, args, outer_context),
+           {:ok, outputs, _memo} <-
+             evaluate_service_outputs(model, service.output_decisions, service_context, %{}) do
+        result =
+          case outputs do
+            [{_name, value}] -> value
+            values -> Map.new(values)
+          end
 
-      coerce_type(result, service.variable && service.variable.type_ref, model)
-    end
+        coerce_type(result, service.variable && service.variable.type_ref, model)
+      end
+    end)
   end
 
   defp find_service(model, name_or_id) do

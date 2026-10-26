@@ -185,6 +185,24 @@ defmodule Boxic.DMN do
   defdelegate evaluate(model, decision_name, context, opts), to: Evaluator
 
   @doc """
+  Evaluates a decision once and returns its result with execution evidence.
+
+  Returns `{:ok, value, trace}` or `{:error, original_reason, trace}`. Existing
+  evaluator options apply. The trace includes partial evidence on tagged errors;
+  exceptions/exits still propagate. Native values are retained without truncation,
+  logging or persistence. See `Boxic.DMN.Trace` and the tracing design document
+  for coverage, contribution semantics and memory behavior.
+
+      Boxic.DMN.evaluate_with_trace(model, "Price", inputs)
+  """
+  @spec evaluate_with_trace(Model.t(), String.t(), map(), keyword()) ::
+          {:ok, term(), Boxic.DMN.Trace.t()}
+          | {:error, evaluation_error() | atom() | [Boxic.DMN.Diagnostic.t()],
+             Boxic.DMN.Trace.t()}
+  def evaluate_with_trace(model, decision_name, context \\ %{}, opts \\ []),
+    do: Evaluator.evaluate_with_trace(model, decision_name, context, opts)
+
+  @doc """
   Evaluates a named decision service.
 
       Boxic.DMN.evaluate_service(model, "Pricing Service", %{"order" => order})
@@ -197,4 +215,12 @@ defmodule Boxic.DMN do
   @spec evaluate_service(Model.t(), String.t(), map() | list(), keyword()) ::
           {:ok, term()} | {:error, evaluation_error()}
   defdelegate evaluate_service(model, service_name, arguments, opts), to: Evaluator
+
+  @doc "Evaluates a decision service once with the same trace contract as `evaluate_with_trace/4`."
+  @spec evaluate_service_with_trace(Model.t(), String.t(), map() | list(), keyword()) ::
+          {:ok, term(), Boxic.DMN.Trace.t()}
+          | {:error, evaluation_error() | atom() | [Boxic.DMN.Diagnostic.t()],
+             Boxic.DMN.Trace.t()}
+  def evaluate_service_with_trace(model, service_name, arguments, opts \\ []),
+    do: Evaluator.evaluate_service_with_trace(model, service_name, arguments, opts)
 end

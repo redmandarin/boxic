@@ -1,19 +1,32 @@
 defmodule Boxic.DMN.DecisionTable do
   @moduledoc false
-  alias Boxic.DMN.FEEL
+  alias Boxic.DMN.{FEEL, Trace}
   alias Boxic.DMN.Model.DecisionTable
 
   def evaluate(%DecisionTable{} = table, context) do
-    with {:ok, input_values} <- evaluate_table_inputs(table.inputs, context),
-         {:ok, matches} <- matching_rules(table.rules, input_values, context),
-         {:ok, results} <- evaluate_matched_outputs(matches, table.outputs, context) do
-      reduce_hit_policy(table, matches, results, context)
-    end
+    Trace.table(table, fn ->
+      with :ok <- Trace.table_phase(:inputs),
+           {:ok, input_values} <- evaluate_table_inputs(table.inputs, context),
+           :ok <- Trace.table_phase(:matching),
+           {:ok, matches} <- matching_rules(table.rules, input_values, context),
+           :ok <- Trace.table_phase(:outputs),
+           {:ok, results} <- evaluate_matched_outputs(matches, table.outputs, context),
+           :ok <- Trace.table_phase(:hit_policy),
+           {:ok, value} <-
+             reduce_hit_policy(table, Enum.map(matches, &elem(&1, 0)), results, context) do
+        Trace.contributing(table.hit_policy)
+        {:ok, value}
+      end
+    end)
   end
 
   defp evaluate_matched_outputs(rules, outputs, context) do
-    Enum.reduce_while(rules, {:ok, []}, fn rule, {:ok, values} ->
-      case evaluate_rule_outputs(rule, outputs, context) do
+    Enum.reduce_while(rules, {:ok, []}, fn {rule, index}, {:ok, values} ->
+      Trace.rule_output(index, :started)
+      result = evaluate_rule_outputs(rule, outputs, context, index)
+      Trace.rule_output(index, result)
+
+      case result do
         {:ok, value} -> {:cont, {:ok, values ++ [value]}}
         {:error, _reason} = error -> {:halt, error}
       end
@@ -101,7 +114,11 @@ defmodule Boxic.DMN.DecisionTable do
          {:ok, priorities} <- evaluate_priority_values(values, context),
          ranked <- Enum.map(results, &rank_result(&1, priority_output, priorities)),
          true <- Enum.all?(ranked, &match?({rank, _} when is_integer(rank), &1)) do
-      {:ok, ranked |> Enum.sort_by(&elem(&1, 0)) |> Enum.map(&elem(&1, 1))}
+      ordered =
+        ranked |> Enum.with_index() |> Enum.sort_by(fn {{rank, _value}, _index} -> rank end)
+
+      Trace.priority_order(Enum.map(ordered, &elem(&1, 1)))
+      {:ok, Enum.map(ordered, fn {{_rank, value}, _index} -> value end)}
     else
       nil -> {:error, :missing_output_priorities}
       false -> {:error, :output_not_in_priority_values}
@@ -129,10 +146,16 @@ defmodule Boxic.DMN.DecisionTable do
   end
 
   defp evaluate_table_inputs(inputs, context) do
-    Enum.reduce_while(inputs, {:ok, []}, fn input, {:ok, values} ->
+    inputs
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, []}, fn {input, index}, {:ok, values} ->
       {expression, bindings} = FEEL.normalize_names(input.expression, context)
 
-      case Boxic.FEEL.evaluate(expression, bindings) do
+      Trace.table_cell(:inputs, index, :started)
+      result = Boxic.FEEL.evaluate(expression, bindings)
+      Trace.table_cell(:inputs, index, result)
+
+      case result do
         {:ok, value} -> {:cont, {:ok, values ++ [value]}}
         {:error, _reason} = error -> {:halt, error}
       end
@@ -140,19 +163,30 @@ defmodule Boxic.DMN.DecisionTable do
   end
 
   defp matching_rules(rules, input_values, context) do
-    Enum.reduce_while(rules, {:ok, []}, fn rule, {:ok, matches} ->
-      case rule_matches?(rule, input_values, context) do
-        {:ok, true} -> {:cont, {:ok, matches ++ [rule]}}
+    rules
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, []}, fn {rule, index}, {:ok, matches} ->
+      Trace.rule_match(index, :started)
+      result = rule_matches?(rule, input_values, context, index)
+      Trace.rule_match(index, result)
+
+      case result do
+        {:ok, true} -> {:cont, {:ok, matches ++ [{rule, index}]}}
         {:ok, false} -> {:cont, {:ok, matches}}
         {:error, _reason} = error -> {:halt, error}
       end
     end)
   end
 
-  defp rule_matches?(rule, input_values, context) do
+  defp rule_matches?(rule, input_values, context, rule_index) do
     Enum.zip(rule.input_entries, input_values)
-    |> Enum.reduce_while({:ok, true}, fn {test, value}, {:ok, true} ->
-      case evaluate_unary_tests(test, value, context) do
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, true}, fn {{test, value}, index}, {:ok, true} ->
+      Trace.rule_cell(rule_index, :conditions, index, :started)
+      result = evaluate_unary_tests(test, value, context)
+      Trace.rule_cell(rule_index, :conditions, index, result)
+
+      case result do
         {:ok, true} -> {:cont, {:ok, true}}
         {:ok, false} -> {:halt, {:ok, false}}
         {:error, _reason} = error -> {:halt, error}
@@ -179,8 +213,9 @@ defmodule Boxic.DMN.DecisionTable do
     |> Enum.map(&String.trim/1)
   end
 
-  defp evaluate_rule_outputs(rule, outputs, context) do
-    with {:ok, values} <- evaluate_output_entries(rule.output_entries, context) do
+  defp evaluate_rule_outputs(rule, outputs, context, rule_index) do
+    with {:ok, values} <-
+           evaluate_output_entries(rule.output_entries, context, {:rule, rule_index}) do
       shape_output(outputs, values)
     end
   end
@@ -189,18 +224,28 @@ defmodule Boxic.DMN.DecisionTable do
     defaults = Enum.map(outputs, & &1.default_output)
 
     if Enum.all?(defaults, &is_binary/1) do
-      with {:ok, values} <- evaluate_output_entries(defaults, context),
+      Trace.table_phase(:defaults)
+      Trace.default_outcome(:default)
+
+      with {:ok, values} <- evaluate_output_entries(defaults, context, :defaults),
            do: shape_output(outputs, values)
     else
+      Trace.default_outcome(:no_match)
       {:ok, nil}
     end
   end
 
-  defp evaluate_output_entries(entries, context) do
-    Enum.reduce_while(entries, {:ok, []}, fn expression, {:ok, values} ->
+  defp evaluate_output_entries(entries, context, position) do
+    entries
+    |> Enum.with_index()
+    |> Enum.reduce_while({:ok, []}, fn {expression, index}, {:ok, values} ->
       {expression, bindings} = FEEL.normalize_names(expression, context)
 
-      case Boxic.FEEL.evaluate(expression, bindings) do
+      Trace.output_cell(position, index, :started)
+      result = Boxic.FEEL.evaluate(expression, bindings)
+      Trace.output_cell(position, index, result)
+
+      case result do
         {:ok, value} -> {:cont, {:ok, values ++ [value]}}
         {:error, _reason} = error -> {:halt, error}
       end

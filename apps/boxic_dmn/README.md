@@ -64,6 +64,26 @@ Boxic.DMN.validate(model, for: :authoring)
 Use `inspect_xml/1` for a best-effort view of older or unsupported documents;
 inspection does not grant executable or writable status.
 
+## Trace an evaluation
+
+`Boxic.DMN.evaluate_with_trace/4` and `evaluate_service_with_trace/4` return
+`{:ok, value, trace}` or `{:error, original_reason, trace}` from one execution.
+The ordinary evaluation APIs keep their existing two-element return shapes.
+
+```elixir
+{:ok, value, trace} = Boxic.DMN.evaluate_with_trace(model, "Price", inputs)
+tables = Enum.filter(trace.events, &(&1.kind == :table))
+```
+
+Traces include decision dependencies, actual table inputs, rule conditions and
+outputs, matched versus contributing rules, defaults and partial tagged failures.
+Source IDs remain nil when absent; table/rule/cell positions are zero-based.
+They reflect existing evaluation order, including all matched outputs evaluated
+before FIRST reduction. Values remain native terms and are retained without
+truncation; trace size grows with work and value size. Exceptions still propagate.
+See [the trace contract](../../docs/evaluation-tracing.md) for scope, contribution
+definitions, process isolation and limitations. No trace is logged or persisted.
+
 ## Edit and export decision tables
 
 `Boxic.DMN.Authoring.DecisionTable` provides immutable, ID-based operations for

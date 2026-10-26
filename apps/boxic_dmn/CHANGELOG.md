@@ -7,6 +7,12 @@ The project follows Semantic Versioning. While the package is below version
 
 ## Unreleased
 
+- Add opt-in decision and decision-service evaluation traces from the same
+  execution, including dependencies, table inputs/rules/outputs, matched versus
+  contributing rules, defaults and partial tagged failures. Preserve ordinary
+  evaluation return shapes, hit policies and expression scheduling. Trace values
+  remain native terms with no truncation, storage or new execution limits.
+
 - Add `edit_xml/3` for one supported expression/table-cell text edit selected by
   actual XML IDs. Retain loader-admitted surrounding descriptions, annotations,
   namespace bindings, diagrams and opaque extensions through xmerl document

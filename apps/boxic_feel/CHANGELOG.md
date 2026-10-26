@@ -4,6 +4,9 @@ All notable changes to `boxic_feel` will be documented in this file.
 
 ## Unreleased
 
+- Add `Boxic.FEEL.validate_unary_tests/1` for syntax-only validation using the
+  unary-test grammar (dash, alternatives and negation), without evaluating operands.
+
 - Add options-aware expression, AST, and unary-test evaluation with a private
   trusted external-function environment.
 - Keep built-ins ahead of registered functions by default, allow explicit host

@@ -1,19 +1,21 @@
 defmodule Boxic.DMN.FEEL do
   @moduledoc false
+  # Parsing needs declaration names, not fabricated input values. Keep the
+  # same name spelling normalization as execution without constructing bindings.
+  def normalize_expression(expression, names) do
+    names
+    |> name_aliases()
+    |> Enum.reduce(expression, fn {name, alias_name}, source ->
+      replace_outside_strings(source, name_pattern(name), alias_name)
+    end)
+  end
+
   def normalize_names(expression, context) do
     context
     |> feel_names()
-    |> Enum.filter(fn name ->
-      is_binary(name) and not Regex.match?(~r/^[\p{L}_][\p{L}\p{N}_]*$/u, name)
-    end)
-    |> Enum.uniq()
-    |> Enum.sort_by(&String.length/1, :desc)
-    |> Enum.with_index()
-    |> Enum.reduce({expression, context}, fn {name, index}, {source, bindings} ->
-      alias_name = "__dmn_name_#{index}"
-
-      pattern =
-        Regex.compile!("(?<![\\p{L}\\p{N}_])#{Regex.escape(name)}(?![\\p{L}\\p{N}_])", "u")
+    |> name_aliases()
+    |> Enum.reduce({expression, context}, fn {name, alias_name}, {source, bindings} ->
+      pattern = name_pattern(name)
 
       if Regex.match?(pattern, source) do
         {replace_outside_strings(source, pattern, alias_name),
@@ -23,6 +25,20 @@ defmodule Boxic.DMN.FEEL do
       end
     end)
   end
+
+  defp name_aliases(names) do
+    names
+    |> Enum.filter(fn name ->
+      is_binary(name) and not Regex.match?(~r/^[\p{L}_][\p{L}\p{N}_]*$/u, name)
+    end)
+    |> Enum.uniq()
+    |> Enum.sort_by(&String.length/1, :desc)
+    |> Enum.with_index()
+    |> Enum.map(fn {name, index} -> {name, "__dmn_name_#{index}"} end)
+  end
+
+  defp name_pattern(name),
+    do: Regex.compile!("(?<![\\p{L}\\p{N}_])#{Regex.escape(name)}(?![\\p{L}\\p{N}_])", "u")
 
   defp replace_outside_strings(source, pattern, replacement) do
     ~r/("(?:\\.|[^"\\])*")/u

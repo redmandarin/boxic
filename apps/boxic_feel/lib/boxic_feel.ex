@@ -60,6 +60,26 @@ defmodule Boxic.FEEL do
   end
 
   @doc """
+  Checks FEEL unary-test syntax without evaluating tests or their operands.
+
+  Accepts dash, positive tests, comma-separated alternatives and `not(...)`.
+  Success does not establish name resolution, types or runtime success.
+
+      iex> Boxic.FEEL.validate_unary_tests("< 18, >= 65")
+      :ok
+  """
+  @spec validate_unary_tests(String.t()) :: :ok | {:error, Error.t()}
+  def validate_unary_tests(expression) when is_binary(expression) do
+    with {:ok, tokens} <- Tokenizer.tokenize(String.trim(expression)) do
+      case Parser.validate_unary_tests(tokens) do
+        :ok -> :ok
+        {:error, %Error{} = error} -> {:error, error}
+        {:ok, rest} -> {:error, Error.new(:invalid_syntax, "unexpected tokens: #{inspect(rest)}")}
+      end
+    end
+  end
+
+  @doc """
   Parses and evaluates a FEEL expression.
 
       iex> Boxic.FEEL.evaluate("price * quantity", %{

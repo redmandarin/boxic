@@ -94,6 +94,23 @@ defmodule Boxic.DMN do
 
   Supported capabilities are `:evaluation`, `:serialization`, and `:authoring`.
   This form returns stable `Boxic.DMN.Diagnostic` values.
+
+  Evaluation and authoring validation parse every supported FEEL expression
+  and unary test, including unused decisions, skipped branches, unmatched rule
+  outputs, defaults and allowed values. No expression is evaluated and no input
+  values are needed. Invalid supported syntax returns `:invalid_feel_syntax`
+  diagnostics with element/position paths and the underlying FEEL error.
+
+      with {:ok, model} <- Boxic.DMN.load_xml(xml),
+           :ok <- Boxic.DMN.validate(model, for: :evaluation) do
+        Boxic.DMN.evaluate(model, "Price", inputs)
+      end
+
+  Syntax success does not establish name resolution, type correctness, allowed
+  input membership, termination or runtime success. Unsupported DMN constructs
+  and expression languages retain their separate diagnostics. `validate/1`
+  remains structural; serialization validation remains a fidelity check.
+  Ordinary evaluation keeps its existing preflight and lazy expression behavior.
   """
   @spec validate(Model.t(), keyword()) :: :ok | {:error, [Boxic.DMN.Diagnostic.t()]}
   defdelegate validate(model, opts), to: Validator

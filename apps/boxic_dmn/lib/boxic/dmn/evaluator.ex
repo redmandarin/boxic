@@ -28,7 +28,7 @@ defmodule Boxic.DMN.Evaluator do
   @spec evaluate(Model.t(), String.t(), map()) :: {:ok, term()} | {:error, evaluation_error()}
   def evaluate(%Model{} = model, decision_name, context \\ %{})
       when is_binary(decision_name) and is_map(context) do
-    with :ok <- Validator.validate(model, for: :evaluation),
+    with :ok <- Validator.validate_for_evaluation(model),
          {:ok, context} <- coerce_input_context(model, context),
          {:ok, decision} <- find_decision(model, decision_name),
          {:ok, value, _memo} <- evaluate_decision(model, decision, context, %{}, %{}) do
@@ -56,7 +56,7 @@ defmodule Boxic.DMN.Evaluator do
           {:ok, term()} | {:error, evaluation_error()}
   def evaluate_service(%Model{} = model, service_name, arguments, opts)
       when is_binary(service_name) and (is_map(arguments) or is_list(arguments)) and is_list(opts) do
-    with :ok <- Validator.validate(model, for: :evaluation),
+    with :ok <- Validator.validate_for_evaluation(model),
          {:ok, outer_context} <- attach_external_functions(%{}, opts),
          {:ok, service} <- find_service(model, service_name) do
       args =

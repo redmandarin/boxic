@@ -63,38 +63,12 @@ defmodule Boxic.DMN.Validator do
 
   def validate(%Model{} = model, for: capability)
       when capability in [:evaluation, :authoring] do
-    errors =
-      case validate(model) do
-        :ok -> []
-        {:error, errors} -> errors
-      end
+    diagnostics =
+      model_diagnostics(model, capability) ++ Boxic.DMN.ExpressionValidator.validate(model)
 
-    errors =
-      if capability == :evaluation,
-        do: Enum.reject(errors, &ignorable_execution_issue?/1) ++ profile_errors(model),
-        else: errors
-
-    case errors |> Enum.uniq() |> Enum.sort_by(&inspect/1) do
-      [] ->
-        :ok
-
-      errors ->
-        category = if capability == :evaluation, do: :evaluation_preflight, else: :dmn_model
-
-        {:error,
-         errors
-         |> Enum.with_index()
-         |> Enum.map(fn {error, index} ->
-           %Diagnostic{
-             code: validation_code(error),
-             category: diagnostic_category(error, category),
-             path: [:model, index],
-             message: diagnostic_message(error),
-             specification: "DMN 1.5",
-             source_profile: model.source_profile,
-             details: %{validation_error: error}
-           }
-         end)}
+    case diagnostics do
+      [] -> :ok
+      diagnostics -> {:error, diagnostics}
     end
   end
 
@@ -111,6 +85,37 @@ defmodule Boxic.DMN.Validator do
          details: %{options: opts}
        }
      ]}
+  end
+
+  defp model_diagnostics(model, capability) do
+    errors =
+      case validate(model) do
+        :ok -> []
+        {:error, errors} -> errors
+      end
+
+    errors =
+      if capability == :evaluation,
+        do: Enum.reject(errors, &ignorable_execution_issue?/1) ++ profile_errors(model),
+        else: errors
+
+    category = if capability == :evaluation, do: :evaluation_preflight, else: :dmn_model
+
+    errors
+    |> Enum.uniq()
+    |> Enum.sort_by(&inspect/1)
+    |> Enum.with_index()
+    |> Enum.map(fn {error, index} ->
+      %Diagnostic{
+        code: validation_code(error),
+        category: diagnostic_category(error, category),
+        path: [:model, index],
+        message: diagnostic_message(error),
+        specification: "DMN 1.5",
+        source_profile: model.source_profile,
+        details: %{validation_error: error}
+      }
+    end)
   end
 
   defp validation_code(error) when is_atom(error), do: error
@@ -358,6 +363,15 @@ defmodule Boxic.DMN.Validator do
 
       true ->
         []
+    end
+  end
+
+  # Preserve execution preflight and lazy evaluation behavior. Full static
+  # syntax validation is an explicit capability check, including skipped work.
+  def validate_for_evaluation(%Model{} = model) do
+    case model_diagnostics(model, :evaluation) do
+      [] -> :ok
+      diagnostics -> {:error, diagnostics}
     end
   end
 

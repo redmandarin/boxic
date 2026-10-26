@@ -48,6 +48,13 @@ XML-looking input or a path, but new code should use the explicit functions.
 Loading returns `{:ok, %Boxic.DMN.Model{}}` or a documented load error.
 Capability validation returns `:ok` or stable `Boxic.DMN.Diagnostic` values:
 
+Evaluation and authoring validation parse every supported FEEL expression and
+unary-test position, including unused decisions, nested branches, table outputs,
+defaults and allowed values. No business inputs or evaluation are required.
+Malformed supported syntax produces positioned `:invalid_feel_syntax` diagnostics.
+Syntax success does not guarantee runtime success. Structural `validate/1`, XML
+loading, serialization checks and ordinary evaluation retain their existing behavior.
+
 ```elixir
 Boxic.DMN.validate(model, for: :evaluation)
 Boxic.DMN.validate(model, for: :serialization)

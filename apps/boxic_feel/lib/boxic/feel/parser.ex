@@ -9,6 +9,35 @@ defmodule Boxic.FEEL.Parser do
   def parse_expression([:function | _] = tokens), do: parse_function(tokens)
   def parse_expression(tokens), do: parse_or(tokens)
 
+  # DMN 1.5, 10.3.1: unary tests have their own entry grammar. In
+  # particular, dash and comma-separated comparisons are not expressions.
+  def validate_unary_tests([:minus]), do: :ok
+
+  def validate_unary_tests([:not, :lparen | tokens]) do
+    with {:ok, [:rparen]} <- validate_positive_tests(tokens), do: :ok
+  end
+
+  def validate_unary_tests(tokens) do
+    with {:ok, []} <- validate_positive_tests(tokens), do: :ok
+  end
+
+  defp validate_positive_tests(tokens) do
+    with {:ok, ast, rest} <- parse_positive_test(tokens),
+         :ok <- Boxic.FEEL.AST.validate(ast) do
+      case rest do
+        [:comma | tail] -> validate_positive_tests(tail)
+        rest -> {:ok, rest}
+      end
+    end
+  end
+
+  defp parse_positive_test([op | rest]) when op in [:eq, :neq, :lt, :lte, :gt, :gte] do
+    with {:ok, endpoint, rest} <- parse_expression(rest),
+         do: {:ok, {:unary_test, op, endpoint}, rest}
+  end
+
+  defp parse_positive_test(tokens), do: parse_expression(tokens)
+
   defp parse_if([:if | rest]) do
     with {:ok, condition, [:then | rest2]} <- parse_expression(rest),
          {:ok, then_branch, [:else | rest3]} <- parse_expression(rest2),

@@ -7,6 +7,12 @@ The project follows Semantic Versioning. While the package is below version
 
 ## Unreleased
 
+- Evaluation and authoring capability validation now parse all supported FEEL
+  expression and unary-test positions without executing the model. Malformed
+  text, including skipped branches and unused defaults, returns positioned FEEL
+  diagnostics. Structural validation, loading, serialization checks and ordinary
+  evaluation retain their existing behavior.
+
 - Make formally released DMN 1.5 (`20230324`) the sole executable and emitted
   profile; retain explicit best-effort inspection for older documents.
 - Add strict schema/profile/model loading, packaged normative schemas, bounded

@@ -1,0 +1,77 @@
+{
+  "boxic_dmn": {
+    "source_revision": "8c1706fadd89aa328d56c39e86edd49708876479",
+    "release": "0.3.0",
+    "tar_sha256": "edfda30ff21010693baa6dd3e067d0b9ec95b6f480efe10d26238a46953b4322",
+    "files": {
+      "CHANGELOG.md": "600927a79f35b8278dcb4d20cf744a4381f5187dfc9ef8055d7b0530739054e7",
+      "CONFORMANCE.md": "a76a43434851dd857a13ac9b4901a7b6c4cf32ac15d792dca5448bf75641c0fc",
+      "CONSTRUCT_CAPABILITY_LEDGER.md": "57a0f90f777b4a779afc235924770fd0532b6ea4b21491ea4fa1b19eb2825731",
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "README.md": "34018d71f362776c46ff7aec2ac492811961ea92b699b3a3ea3a491cecc26a70",
+      "lib/boxic/dmn.ex": "c0d15ac5e9f75db561b62dad44110bb63ce45b0acebe46da417fe74a27debe0f",
+      "lib/boxic/dmn/authoring/decision_table.ex": "25040d61fa4e65b406f35fea470be5b54082c5443b3ebe0600bc3725c394847a",
+      "lib/boxic/dmn/authoring_error.ex": "2544bc80d12608005027793e7e91745a80090e2ce689737167129af0b4c9b06a",
+      "lib/boxic/dmn/compatibility.ex": "d3b0ae50fe2d7743133bc7ef212e27e756930aea53536bd26ff0edee309a5f3e",
+      "lib/boxic/dmn/decision_table.ex": "77d0d5d333197d478dc916d2f9ec4406f94bd88550bd7e9bcb3c9b53b0e80274",
+      "lib/boxic/dmn/diagnostic.ex": "82e97a4dbdf59972ea1b60ab362d11b94693faa543edc295b2a973e56ed14e04",
+      "lib/boxic/dmn/evaluator.ex": "e9002820aac579a6d971d08bd6f688977bbc25800803542314302a1dd7342831",
+      "lib/boxic/dmn/feel.ex": "afb3fbd2dfa60b5dc5099bbcb61597a2812175c74b760a0acd23df8360a70056",
+      "lib/boxic/dmn/imports.ex": "8b8af729c71381d57a0defe56f1e9c559db83ff5a7509a761f4521abc2bccadc",
+      "lib/boxic/dmn/model.ex": "4d82b6a00d89e9c53e889cd5412b185a04ae1dfaf0f4c905800b6d796583ef1a",
+      "lib/boxic/dmn/serialization_error.ex": "5911c6c7c0802fc70db1acf44d5afaed48db78590f3e269d894a7aabb6713774",
+      "lib/boxic/dmn/validator.ex": "91f3bc0f0d407bd0f966a66f6f2a9a61e68c1836741eb291f1c8da0b2d90e5d8",
+      "lib/boxic/dmn/xml/element.ex": "6e63b381a4941423c69e15b1708390d9d94f4143652bc11204eee56de9aaa3b0",
+      "lib/boxic/dmn/xml/emitter.ex": "bf2d4f35a1d8713a8207731af047d33ade6488b46eea691282091d71c7f1f61a",
+      "lib/boxic/dmn/xml/loader.ex": "11c4e307535c509b406224a8fbcd49eac76a23a22044a1f080af2772c0b62dd1",
+      "lib/boxic/dmn/xml/schema_validator.ex": "4f657fbf7892545307100a2d12a94ae265122085ace1705973528aca29608b18",
+      "lib/boxic/dmn/xml/serialization_validator.ex": "e3ebd2739a038ceb0e104184ec851a523fafe0fb7932ecd50c1635c419b59ad4",
+      "lib/boxic/dmn/xml/writer.ex": "c3861b394ac90bd1643f805431b60a28ea172d969ffdd467ce313d4c20d38cda",
+      "mix.exs": "5ca009085e382182d875c7e86213458d99eaaca5e44e6cb9862501d8991a3e4f",
+      "priv/schema/dmn-1.5/DC.xsd": "6c26cd5d9066a8c669ef27414df9f1d5558a2a954f9a8afa0ffd323e24310153",
+      "priv/schema/dmn-1.5/DI.xsd": "a0f51e004950a2742337934591d949f6c3ca2810c3ec47186a4aea911ae10c7c",
+      "priv/schema/dmn-1.5/DMN15.xsd": "3ffdbc068815b0d94094a43c5c26b1fa1151e09d4a6a83ac637f347c637181f1",
+      "priv/schema/dmn-1.5/DMNDI15.xsd": "6e78fe9621d7360c96609523afef3da5ba4fee6a2ad53ec4cd12d126c7795c50",
+      "priv/schema/dmn-1.5/MANIFEST": "50b519ddae8514ea3ea5754a9f69bba2e143a8d6590e69b6f659c4aef53b2f92"
+    },
+    "identical_runtime_and_schema_files": 23,
+    "source_only_runtime_and_schema_files": [],
+    "differing_files": [
+      "CHANGELOG.md",
+      "README.md",
+      "mix.exs"
+    ]
+  },
+  "boxic_feel": {
+    "source_revision": "8c1706fadd89aa328d56c39e86edd49708876479",
+    "release": "0.2.0",
+    "tar_sha256": "05bc8309aa62b2f8ad1c0b3b32055cade0a636796ce9fd0eacd9dac326fc3683",
+    "files": {
+      "CHANGELOG.md": "097fc595065873821bc1ce56f9c784a3ada2cd1c7617239077feda6ee6f7f09f",
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "README.md": "761004ace49c9f0c2e522fc6c41ab022d01d0ab6fc5b12a429c279919e1f4d6a",
+      "lib/boxic/feel/ast.ex": "f6964d5c6afafa6189b4695e41831bb471b854fbbb8668630acb61c1f1440a9a",
+      "lib/boxic/feel/builtins.ex": "e9afebda51e3d7e695a6b2621dd097f659076e0926218bf489f2e44c151f68d1",
+      "lib/boxic/feel/date_time.ex": "eb2a776feed73c02570213bc4b23f485e258bdac0316275b791e67a88203ab57",
+      "lib/boxic/feel/duration.ex": "13f3718773f7bec686424f6046d698e27ac0c64c10ee412dc935d30a105e6d33",
+      "lib/boxic/feel/error.ex": "fbd0c305dcd438ad498fbaa440609c0a2af92ab52398005914d6afa3fe175f76",
+      "lib/boxic/feel/evaluator.ex": "18571c90e331d309b8f8852ff72c9a192852080abd74ce721297bafc9501ad10",
+      "lib/boxic/feel/external_functions.ex": "60540d6f8243d04fd40733789403989c084261a2b8b53c3adb5131b41b509d56",
+      "lib/boxic/feel/function.ex": "b369ce17bb9b5a3baaa5242f0c85fb7b062714f376fb51726452a858ded88bfd",
+      "lib/boxic/feel/parser.ex": "bfe5f3402a1e92fb9075def207b5ee6f803c89dbd64daf982d4f9bf9d827a23d",
+      "lib/boxic/feel/range.ex": "4f0872a8a3a2a395499acc5786592917eb7d952f27da22a87fe553367d7327fa",
+      "lib/boxic/feel/semantics.ex": "3905b335e3b5af6a9409687b6fae658ba09ed647c242acb758b98d8d2e96013f",
+      "lib/boxic/feel/time.ex": "a2461b45f2c2a9f3cbd120e8597ebf1547c93362dbe65d004ca07ac39074ff7b",
+      "lib/boxic/feel/tokenizer.ex": "e7babd7a090620c4f9869452f222fb4dee06fc20c4ea417e2d2beb4655c2f857",
+      "lib/boxic_feel.ex": "6d07131efff053676920e7d5b891431f5e646bf23d0bd7b3c6d9478a7f9f32a7",
+      "mix.exs": "083bb4c83c4b9330d3066c334b06e88938182e9af3e273b4091d128e133681a7"
+    },
+    "identical_runtime_and_schema_files": 14,
+    "source_only_runtime_and_schema_files": [],
+    "differing_files": [
+      "CHANGELOG.md",
+      "README.md",
+      "mix.exs"
+    ]
+  }
+}

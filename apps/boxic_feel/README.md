@@ -35,6 +35,15 @@ All public entry points return `{:ok, value}` or
 
 ## Compatibility
 
+Evaluation of source, ASTs and unary tests uses 34-digit, half-even Decimal
+arithmetic independently of the caller's precision, rounding and trap settings.
+The caller's complete context is restored on success and failure. Named rounding
+functions preserve their own modes. Numeric invalid/overflow results become
+local FEEL nulls; unrelated failures retain their existing behavior.
+See [the scoped arithmetic contract](../../docs/scoped-feel-arithmetic.md).
+Literal/input admission, exponent endpoints and existing float-backed functions
+remain separate numeric-conformance concerns.
+
 Against the vendored official DMN Technology Compatibility Kit revision
 `0dbcaf9b98bc3af4e36d44a7aed95e9e85703a13`, Boxic passes 2,042 of the 2,060
 selected FEEL cases. The remaining 18 are Java external-function integration

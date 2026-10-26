@@ -5,6 +5,11 @@ defmodule Boxic.DMN do
   Use `load_file/1` when the input is a path and `load_xml/1` when the input is
   XML. `load/1` remains available for backwards compatibility and dispatches
   XML-looking input to `load_xml/1`; all other input is treated as a path.
+
+  Decision, service and traced evaluation share FEEL's scoped 34-digit,
+  half-even Decimal arithmetic policy, including decision-table aggregation.
+  The caller's entire Decimal context is restored after success or failure.
+  Numeric construction and exponent conformance are separate from that policy.
   """
 
   alias Boxic.DMN.Model

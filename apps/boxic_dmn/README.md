@@ -66,6 +66,12 @@ inspection does not grant executable or writable status.
 
 ## Trace an evaluation
 
+Decision, service and traced evaluation use FEEL's scoped 34-digit, half-even
+Decimal context, including COLLECT aggregation, and restore the caller's full
+context after success or failure. Explicit rounding functions and no-match
+COLLECT/default behavior are unchanged. See [the arithmetic contract](../../docs/scoped-feel-arithmetic.md)
+for numeric-failure handling and the separate numeric-admission audit boundary.
+
 `Boxic.DMN.evaluate_with_trace/4` and `evaluate_service_with_trace/4` return
 `{:ok, value, trace}` or `{:error, original_reason, trace}` from one execution.
 The ordinary evaluation APIs keep their existing two-element return shapes.

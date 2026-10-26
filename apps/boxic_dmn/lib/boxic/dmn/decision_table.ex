@@ -2,7 +2,7 @@ defmodule Boxic.DMN.DecisionTable do
   @moduledoc false
   alias Boxic.DMN.{FEEL, Trace}
   alias Boxic.DMN.Model.DecisionTable
-  alias Boxic.FEEL.Semantics
+  alias Boxic.FEEL.{Arithmetic, Semantics}
 
   def evaluate(%DecisionTable{} = table, context) do
     Trace.table(table, fn ->
@@ -85,7 +85,8 @@ defmodule Boxic.DMN.DecisionTable do
 
   defp aggregate_collect("SUM", results) do
     if Enum.all?(results, &match?(%Decimal{}, &1)),
-      do: {:ok, Enum.reduce(results, Decimal.new(0), &Decimal.add/2)},
+      do:
+        Arithmetic.protect(fn -> {:ok, Enum.reduce(results, Decimal.new(0), &Decimal.add/2)} end),
       else: {:error, :collect_aggregation_requires_numbers}
   end
 

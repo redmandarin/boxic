@@ -1,6 +1,16 @@
 defmodule Boxic.FEEL.Evaluator do
   @moduledoc false
-  alias Boxic.FEEL.{Builtins, Duration, Error, ExternalFunctions, Function, Range, Semantics}
+  alias Boxic.FEEL.{
+    Arithmetic,
+    Builtins,
+    Duration,
+    Error,
+    ExternalFunctions,
+    Function,
+    Range,
+    Semantics
+  }
+
   alias Boxic.FEEL.DateTime, as: FeelDateTime
   alias Boxic.FEEL.Time, as: FeelTime
 
@@ -228,7 +238,7 @@ defmodule Boxic.FEEL.Evaluator do
     with {:ok, value} <- eval(expr, context) do
       case value do
         nil -> {:ok, nil}
-        %Decimal{} = decimal -> {:ok, decimal_negate(decimal)}
+        %Decimal{} = decimal -> Arithmetic.protect(fn -> {:ok, decimal_negate(decimal)} end)
         %Duration{} = duration -> {:ok, Duration.negate(duration)}
         _ -> {:error, error(:type_error, "negation requires a number")}
       end
@@ -238,7 +248,7 @@ defmodule Boxic.FEEL.Evaluator do
   def eval({:binary, op, left, right}, context) do
     with {:ok, left_value} <- eval(left, context),
          {:ok, right_value} <- eval(right, context) do
-      eval_binary(op, left_value, right_value)
+      Arithmetic.protect(fn -> eval_binary(op, left_value, right_value) end)
     end
   end
 
@@ -1027,11 +1037,13 @@ defmodule Boxic.FEEL.Evaluator do
         {:ok, decimal_integer_power(base, integer)}
 
       :error ->
-        {:ok,
-         base
-         |> Decimal.to_float()
-         |> :math.pow(Decimal.to_float(exponent))
-         |> Decimal.from_float()}
+        Arithmetic.float_math(fn ->
+          {:ok,
+           base
+           |> Decimal.to_float()
+           |> :math.pow(Decimal.to_float(exponent))
+           |> Decimal.from_float()}
+        end)
     end
   end
 

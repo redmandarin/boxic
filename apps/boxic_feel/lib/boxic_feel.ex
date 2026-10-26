@@ -4,9 +4,20 @@ defmodule Boxic.FEEL do
 
   The public facade accepts FEEL source through `parse/1` and `evaluate/2`, or
   an already parsed syntax tree through `evaluate_ast/2`.
+
+  Source, AST and unary-test evaluation use a scoped Decimal context with
+  precision 34 and half-even rounding. The caller's full context is restored
+  after success or failure; nested public calls use the same arithmetic policy.
+  Explicit rounding functions retain their own modes. Undefined numeric results
+  become local FEEL nulls at arithmetic operations, not a fallback for an entire
+  evaluation. Other errors retain their existing behavior.
+
+  This does not establish numeric admission or complete decimal128 conformance:
+  parsing, preconstructed context/AST values, exponent boundaries and existing
+  float-backed math have separate limitations. `parse/1` remains syntax-only.
   """
 
-  alias Boxic.FEEL.{AST, Error, Evaluator, ExternalFunctions, Parser, Tokenizer}
+  alias Boxic.FEEL.{Arithmetic, AST, Error, Evaluator, ExternalFunctions, Parser, Tokenizer}
 
   @type ast ::
           {:literal, term()}
@@ -90,29 +101,37 @@ defmodule Boxic.FEEL do
   """
   @spec evaluate(String.t(), context()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate(expression, context \\ %{}) when is_binary(expression) and is_map(context) do
-    with {:ok, ast} <- parse(expression), do: evaluate_ast(ast, context)
+    Arithmetic.with_context(fn ->
+      with {:ok, ast} <- parse(expression), do: evaluate_ast(ast, context)
+    end)
   end
 
   @doc "Evaluates FEEL with a trusted external-function environment."
   @spec evaluate(String.t(), context(), keyword()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate(expression, context, opts)
       when is_binary(expression) and is_map(context) and is_list(opts) do
-    with {:ok, context} <- evaluator_context(context, opts),
-         {:ok, ast} <- parse(expression) do
-      evaluate_ast(ast, context)
-    end
+    Arithmetic.with_context(fn ->
+      with {:ok, context} <- evaluator_context(context, opts),
+           {:ok, ast} <- parse(expression) do
+        evaluate_ast(ast, context)
+      end
+    end)
   end
 
   @doc "Evaluates an AST previously returned by `parse/1`."
   @spec evaluate_ast(ast(), context()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate_ast(ast, context) when is_map(context) do
-    with :ok <- AST.validate(ast), do: Evaluator.eval(ast, context)
+    Arithmetic.with_context(fn ->
+      with :ok <- AST.validate(ast), do: Evaluator.eval(ast, context)
+    end)
   end
 
   @doc "Evaluates a parsed AST with a trusted external-function environment."
   @spec evaluate_ast(ast(), context(), keyword()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate_ast(ast, context, opts) when is_map(context) and is_list(opts) do
-    with {:ok, context} <- evaluator_context(context, opts), do: evaluate_ast(ast, context)
+    Arithmetic.with_context(fn ->
+      with {:ok, context} <- evaluator_context(context, opts), do: evaluate_ast(ast, context)
+    end)
   end
 
   @doc """
@@ -125,7 +144,9 @@ defmodule Boxic.FEEL do
           {:ok, boolean()} | {:error, Error.t()}
   def evaluate_unary_test(test_expression, value, context \\ %{})
       when is_binary(test_expression) and is_map(context) do
-    Evaluator.evaluate_unary_test(test_expression, value, context)
+    Arithmetic.with_context(fn ->
+      Evaluator.evaluate_unary_test(test_expression, value, context)
+    end)
   end
 
   @doc "Evaluates a unary test with a trusted external-function environment."
@@ -133,9 +154,11 @@ defmodule Boxic.FEEL do
           {:ok, boolean()} | {:error, Error.t()}
   def evaluate_unary_test(test_expression, value, context, opts)
       when is_binary(test_expression) and is_map(context) and is_list(opts) do
-    with {:ok, context} <- evaluator_context(context, opts) do
-      Evaluator.evaluate_unary_test(test_expression, value, context)
-    end
+    Arithmetic.with_context(fn ->
+      with {:ok, context} <- evaluator_context(context, opts) do
+        Evaluator.evaluate_unary_test(test_expression, value, context)
+      end
+    end)
   end
 
   defp evaluator_context(context, opts) do

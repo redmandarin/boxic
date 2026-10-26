@@ -1,6 +1,7 @@
 defmodule Boxic.FEEL.Builtins do
   @moduledoc false
 
+  alias Boxic.FEEL.Arithmetic
   alias Boxic.FEEL.Duration
   alias Boxic.FEEL.DateTime, as: FeelDateTime
   alias Boxic.FEEL.Time, as: FeelTime
@@ -106,7 +107,7 @@ defmodule Boxic.FEEL.Builtins do
   @spec invoke(String.t(), [term()]) :: {:ok, term()} | {:error, Boxic.FEEL.Error.t()}
   def invoke(name, args) do
     with {:ok, normalized_args} <- normalize_args(name, args) do
-      case invoke_normalized(name, normalized_args) do
+      case Arithmetic.protect(fn -> invoke_normalized(name, normalized_args) end) do
         {:error, _error} = original ->
           coerced_args =
             Enum.map(normalized_args, fn
@@ -116,7 +117,7 @@ defmodule Boxic.FEEL.Builtins do
 
           if coerced_args == normalized_args,
             do: original,
-            else: invoke_normalized(name, coerced_args)
+            else: Arithmetic.protect(fn -> invoke_normalized(name, coerced_args) end)
 
         result ->
           result
@@ -568,17 +569,20 @@ defmodule Boxic.FEEL.Builtins do
   defp decimal_sqrt(%Decimal{} = value) do
     case Decimal.compare(value, Decimal.new(0)) do
       :lt -> {:ok, nil}
-      _ -> {:ok, value |> Decimal.to_float() |> :math.sqrt() |> Decimal.from_float()}
+      _ -> decimal_float_function(value, &:math.sqrt/1)
     end
   end
 
   defp decimal_float_function(value, function) do
-    {:ok, value |> Decimal.to_float() |> function.() |> Decimal.from_float()}
+    Arithmetic.float_math(fn ->
+      {:ok, value |> Decimal.to_float() |> function.() |> Decimal.from_float()}
+    end)
   end
 
   defp decimal_float_function(value, function, scale) do
-    with {:ok, result} <- decimal_float_function(value, function) do
-      {:ok, Decimal.round(result, scale, :half_even)}
+    case decimal_float_function(value, function) do
+      {:ok, nil} -> {:ok, nil}
+      {:ok, result} -> {:ok, Decimal.round(result, scale, :half_even)}
     end
   end
 
@@ -930,12 +934,14 @@ defmodule Boxic.FEEL.Builtins do
         end)
         |> Decimal.div(Decimal.new(length(values) - 1))
 
-      {:ok,
-       variance
-       |> Decimal.to_float()
-       |> :math.sqrt()
-       |> Decimal.from_float()
-       |> Decimal.round(13, :half_even)}
+      Arithmetic.float_math(fn ->
+        {:ok,
+         variance
+         |> Decimal.to_float()
+         |> :math.sqrt()
+         |> Decimal.from_float()
+         |> Decimal.round(13, :half_even)}
+      end)
     end
   end
 

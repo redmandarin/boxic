@@ -1,5 +1,9 @@
 # Decimal context and empty-COLLECT recommendations
 
+Historical proposal recorded at `25b02ea`. The scoped arithmetic portion is now
+implemented in [the arithmetic correction](scoped-feel-arithmetic.md); the
+construction/exponent audit remains separate. The COLLECT recommendation stands.
+
 Documentation only, separate from the scalar numeric priority fix. These are
 recommendations for review, not implemented behavior changes or authorization
 to change Wedge's pins. Normative references use

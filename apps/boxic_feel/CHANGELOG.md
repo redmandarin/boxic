@@ -4,6 +4,12 @@ All notable changes to `boxic_feel` will be documented in this file.
 
 ## Unreleased
 
+- Run all public evaluation entry points in a scoped 34-digit, half-even Decimal
+  context, restoring caller precision, rounding, bounds, flags and traps on exit.
+  Translate identified arithmetic failures to local FEEL nulls without rescuing
+  whole evaluations or provider/programming errors. Preserve explicit rounding
+  built-ins; numeric construction and exponent conformance remain separate.
+
 - Add `Boxic.FEEL.validate_unary_tests/1` for syntax-only validation using the
   unary-test grammar (dash, alternatives and negation), without evaluating operands.
 

@@ -17,7 +17,7 @@ defmodule Boxic.DMN.Evaluator do
   alias Boxic.DMN.Model.Variable
   alias Boxic.DMN.{FEEL, Trace, Validator}
   alias Boxic.DMN.DecisionTable, as: DecisionTableEvaluator
-  alias Boxic.FEEL.ExternalFunctions
+  alias Boxic.FEEL.{Arithmetic, ExternalFunctions}
 
   @type evaluation_error ::
           Boxic.FEEL.Error.t()
@@ -34,13 +34,19 @@ defmodule Boxic.DMN.Evaluator do
           {:ok, term()} | {:error, evaluation_error()}
   def evaluate(%Model{} = model, decision_name, context, opts)
       when is_binary(decision_name) and is_map(context) and is_list(opts) do
-    Trace.without_capture(fn -> evaluate_decision_entry(model, decision_name, context, opts) end)
+    Arithmetic.with_context(fn ->
+      Trace.without_capture(fn ->
+        evaluate_decision_entry(model, decision_name, context, opts)
+      end)
+    end)
   end
 
   def evaluate_with_trace(%Model{} = model, decision_name, context, opts)
       when is_binary(decision_name) and is_map(context) and is_list(opts) do
-    Trace.capture(model, %{kind: :decision, requested: decision_name}, fn ->
-      evaluate_decision_entry(model, decision_name, context, opts)
+    Arithmetic.with_context(fn ->
+      Trace.capture(model, %{kind: :decision, requested: decision_name}, fn ->
+        evaluate_decision_entry(model, decision_name, context, opts)
+      end)
     end)
   end
 
@@ -68,13 +74,19 @@ defmodule Boxic.DMN.Evaluator do
           {:ok, term()} | {:error, evaluation_error()}
   def evaluate_service(%Model{} = model, service_name, arguments, opts)
       when is_binary(service_name) and (is_map(arguments) or is_list(arguments)) and is_list(opts) do
-    Trace.without_capture(fn -> evaluate_service_entry(model, service_name, arguments, opts) end)
+    Arithmetic.with_context(fn ->
+      Trace.without_capture(fn ->
+        evaluate_service_entry(model, service_name, arguments, opts)
+      end)
+    end)
   end
 
   def evaluate_service_with_trace(%Model{} = model, service_name, arguments, opts)
       when is_binary(service_name) and (is_map(arguments) or is_list(arguments)) and is_list(opts) do
-    Trace.capture(model, %{kind: :service, requested: service_name}, fn ->
-      evaluate_service_entry(model, service_name, arguments, opts)
+    Arithmetic.with_context(fn ->
+      Trace.capture(model, %{kind: :service, requested: service_name}, fn ->
+        evaluate_service_entry(model, service_name, arguments, opts)
+      end)
     end)
   end
 

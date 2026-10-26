@@ -642,7 +642,12 @@ defmodule Boxic.DMN.EvaluationTraceTest do
   test "a host boundary catching an interrupted BKM retains honest cell states" do
     model = bkm_model()
     bkm = model.bkms["bkm"]
-    table = %{bkm.expression | rules: [%{hd(bkm.expression.rules) | output_entries: ["1 / 3"]}]}
+
+    table = %{
+      bkm.expression
+      | rules: [%{hd(bkm.expression.rules) | output_entries: ["explode()"]}]
+    }
+
     model = %{model | bkms: %{"bkm" => %{bkm | expression: table}}}
     model = put_expression(model, literal("host(Choose)"))
 
@@ -655,16 +660,19 @@ defmodule Boxic.DMN.EvaluationTraceTest do
          end, []}
       ])
 
-    Decimal.Context.with(%{Decimal.Context.get() | traps: [:inexact]}, fn ->
-      trace = equivalent(model, external_functions: registry)
-      assert %Boxic.FEEL.Error{code: :external_function_error} = trace.error
-      table = only_table(trace)
-      assert table.status == :interrupted
-      assert hd(table.rules).status == :matched
-      assert hd(table.rules).output_status == :interrupted
-      assert hd(hd(table.rules).outputs).status == :interrupted
-      assert table.contributing_rules == nil
-    end)
+    context = %{
+      "explode" =>
+        {:external_function, fn _args -> raise ArgumentError, "private callback failure" end}
+    }
+
+    trace = equivalent(model, [external_functions: registry], context)
+    assert %Boxic.FEEL.Error{code: :external_function_error} = trace.error
+    table = only_table(trace)
+    assert table.status == :interrupted
+    assert hd(table.rules).status == :matched
+    assert hd(table.rules).output_status == :interrupted
+    assert hd(hd(table.rules).outputs).status == :interrupted
+    assert table.contributing_rules == nil
   end
 
   test "nested ordinary and traced public calls do not contaminate the outer capture" do
@@ -697,12 +705,16 @@ defmodule Boxic.DMN.EvaluationTraceTest do
     assert hd(next.events).event_id == 1
   end
 
-  test "propagated arithmetic exceptions leave later captures clean" do
+  test "caller inexact traps do not interrupt arithmetic or leak into later captures" do
     model = table_model("UNIQUE", [{"-", "1 / 3"}])
+    caller = %{Decimal.Context.get() | traps: [:inexact], flags: [:rounded]}
 
-    Decimal.Context.with(%{Decimal.Context.get() | traps: [:inexact]}, fn ->
-      assert_raise Decimal.Error, fn -> DMN.evaluate(model, "Result") end
-      assert_raise Decimal.Error, fn -> DMN.evaluate_with_trace(model, "Result") end
+    Decimal.Context.with(caller, fn ->
+      expected = Decimal.new("0.3333333333333333333333333333333333")
+      assert {:ok, ^expected} = DMN.evaluate(model, "Result")
+      assert {:ok, ^expected, trace} = DMN.evaluate_with_trace(model, "Result")
+      assert trace.status == :ok
+      assert Decimal.Context.get() === caller
     end)
 
     assert {:ok, _, trace} =

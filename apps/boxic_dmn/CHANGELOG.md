@@ -7,6 +7,10 @@ The project follows Semantic Versioning. While the package is below version
 
 ## Unreleased
 
+- Apply FEEL's scoped 34-digit, half-even arithmetic context to decision, service
+  and traced evaluation, including table SUM, with full caller-context restoration.
+  Keep no-match COLLECT/default behavior and trace scheduling unchanged.
+
 - Fix scalar numeric PRIORITY/OUTPUT_ORDER ranking by using declared output
   shape and FEEL numeric equality, including equal Decimals with different
   scales. Preserve result representations, stable rule ties and evaluation counts.

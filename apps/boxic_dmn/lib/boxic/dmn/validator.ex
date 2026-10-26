@@ -61,10 +61,11 @@ defmodule Boxic.DMN.Validator do
     end
   end
 
-  def validate(%Model{} = model, for: :evaluation, profile: :wedge_v1) do
+  def validate(%Model{} = model, for: :evaluation, profile: :bounded_v1) do
     diagnostics =
       model_diagnostics(model, :evaluation) ++
-        Boxic.DMN.ExpressionValidator.validate(model, :wedge_v1) ++ v1_structure_errors(model, [])
+        Boxic.DMN.ExpressionValidator.validate(model, :bounded_v1) ++
+        v1_structure_errors(model, [])
 
     if diagnostics == [], do: :ok, else: {:error, diagnostics}
   end
@@ -98,7 +99,7 @@ defmodule Boxic.DMN.Validator do
   defp v1_structure_errors(%Model{} = model, path) do
     restrictions =
       for {field, values} <- [bkms: model.bkms, imports: model.imports], map_size(values) > 0 do
-        v1_diagnostic(path ++ [field], "wedge_v1 excludes BKMs and imports")
+        v1_diagnostic(path ++ [field], "bounded_v1 excludes BKMs and imports")
       end
 
     restrictions ++ v1_structure_errors(Map.values(model.decisions), path ++ [:decisions])
@@ -106,7 +107,7 @@ defmodule Boxic.DMN.Validator do
 
   defp v1_structure_errors(%module{} = value, path)
        when module in [Boxic.DMN.Model.Invocation, Boxic.DMN.Model.FunctionDefinition] do
-    [v1_diagnostic(path ++ [value.id], "boxed invocation/functions are outside wedge_v1")]
+    [v1_diagnostic(path ++ [value.id], "boxed invocation/functions are outside bounded_v1")]
   end
 
   defp v1_structure_errors(values, path) when is_map(values) do
@@ -131,7 +132,7 @@ defmodule Boxic.DMN.Validator do
       category: :dmn_model,
       path: path,
       message: message,
-      specification: "Boxic wedge_v1 library policy",
+      specification: "Boxic bounded_v1 library policy",
       source_profile: :dmn_1_5
     }
 

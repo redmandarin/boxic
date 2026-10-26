@@ -189,7 +189,7 @@ defmodule Boxic.DMN.ExpressionValidator do
     normalized = FEEL.normalize_expression(text, names)
 
     result =
-      if profile == :wedge_v1 do
+      if profile == :bounded_v1 do
         Boxic.FEEL.Profile.validate(normalized, grammar)
       else
         case grammar do
@@ -214,7 +214,7 @@ defmodule Boxic.DMN.ExpressionValidator do
             message: "FEEL #{grammar}: #{error.message}",
             specification:
               if(error.code == :unsupported_profile,
-                do: "Boxic wedge_v1 library policy",
+                do: "Boxic bounded_v1 library policy",
                 else: "DMN 1.5"
               ),
             clause: diagnostic_clause(error.code),

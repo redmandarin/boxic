@@ -73,3 +73,11 @@ The boundary must clean up workers on timeout and caller death and avoid late
 mailbox messages. XML schema validation uses a directly owned Port, a deadline,
 bounded diagnostic output and temporary-file cleanup; cancellation must stop the
 native validator and remove its file. No job system is introduced.
+
+The public profile name is `:bounded_v1`: the qualification target is Wedge v1,
+but the library capability and diagnostics remain domain-agnostic. Conservative
+additional exclusions are callback-taking sort/list-replace, function definitions,
+BKMs, imports and boxed invocation. This is intentionally narrower than the
+legacy implemented TCK profile; exclusions must be reported separately from
+failures and must not be represented as supported merely because legacy
+execution passes them.

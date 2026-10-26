@@ -117,12 +117,12 @@ defmodule Boxic.DMN.Evaluator do
       nil ->
         :ok
 
-      :wedge_v1 ->
+      :bounded_v1 ->
         if Keyword.has_key?(opts, :external_functions) do
           {:error,
-           Boxic.FEEL.Error.new(:unsupported_profile, "external functions are outside wedge_v1")}
+           Boxic.FEEL.Error.new(:unsupported_profile, "external functions are outside bounded_v1")}
         else
-          with :ok <- Validator.validate(model, for: :evaluation, profile: :wedge_v1),
+          with :ok <- Validator.validate(model, for: :evaluation, profile: :bounded_v1),
                do: Boxic.FEEL.Profile.validate_data(inputs)
         end
 

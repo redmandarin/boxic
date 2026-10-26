@@ -1,6 +1,6 @@
 defmodule Boxic.FEEL.Profile do
   @moduledoc """
-  Static, conservative capability gate for the `:wedge_v1` FEEL profile.
+  Static, conservative capability gate for the `:bounded_v1` FEEL profile.
   This is a library profile policy, not a new FEEL semantics or certification.
   All branches and function references are checked without executing expressions.
   """
@@ -27,13 +27,13 @@ defmodule Boxic.FEEL.Profile do
 
   @doc false
   def validate_data(%Boxic.FEEL.Function{}),
-    do: unsupported("callable inputs are outside wedge_v1")
+    do: unsupported("callable inputs are outside bounded_v1")
 
   def validate_data(value) when is_function(value),
-    do: unsupported("callable inputs are outside wedge_v1")
+    do: unsupported("callable inputs are outside bounded_v1")
 
   def validate_data({kind, _}) when kind in [:builtin, :external_function],
-    do: unsupported("callable inputs are outside wedge_v1")
+    do: unsupported("callable inputs are outside bounded_v1")
 
   def validate_data(values) when is_map(values), do: values |> Map.values() |> validate_data()
 
@@ -54,20 +54,20 @@ defmodule Boxic.FEEL.Profile do
   end
 
   defp supported({:identifier, name}) when name in @excluded,
-    do: unsupported("#{name} is excluded from wedge_v1, including function references")
+    do: unsupported("#{name} is excluded from bounded_v1, including function references")
 
   defp supported({:function, _parameters, _body}),
-    do: unsupported("FEEL function definitions are outside wedge_v1")
+    do: unsupported("FEEL function definitions are outside bounded_v1")
 
   defp supported({:call, {:identifier, name}, arguments}) do
     case Builtins.resolve(name) do
       {:ok, {:builtin, _}} -> supported([{:identifier, name} | arguments])
-      _ -> unsupported("only direct supported built-in calls are allowed in wedge_v1")
+      _ -> unsupported("only direct supported built-in calls are allowed in bounded_v1")
     end
   end
 
   defp supported({:call, _function, _arguments}),
-    do: unsupported("dynamic function calls are outside wedge_v1")
+    do: unsupported("dynamic function calls are outside bounded_v1")
 
   defp supported({:binary, :pow, base, exponent}) do
     case integer_exponent(exponent) do
@@ -76,7 +76,7 @@ defmodule Boxic.FEEL.Profile do
 
       _ ->
         unsupported(
-          "wedge_v1 powers require a literal integer exponent of magnitude at most 1024"
+          "bounded_v1 powers require a literal integer exponent of magnitude at most 1024"
         )
     end
   end

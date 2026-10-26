@@ -56,6 +56,7 @@ defmodule Boxic.DMN.Evaluator do
          :ok <- Validator.validate_for_evaluation(model),
          :ok <- Trace.stage(:input_coercion),
          {:ok, context} <- coerce_input_context(model, context),
+         {:ok, context} <- Boxic.FEEL.Number.admit(context),
          :ok <- Trace.stage(:lookup),
          {:ok, decision} <- find_decision(model, decision_name),
          :ok <- Trace.stage(:evaluation),
@@ -98,12 +99,14 @@ defmodule Boxic.DMN.Evaluator do
          :ok <- Trace.stage(:lookup),
          {:ok, service} <- find_service(model, service_name),
          :ok <- Trace.stage(:evaluation) do
-      args =
-        if is_map(arguments),
-          do: Enum.map(arguments, fn {name, value} -> {:named_arg, name, value} end),
-          else: arguments
+      with {:ok, arguments} <- Boxic.FEEL.Number.admit(arguments) do
+        args =
+          if is_map(arguments),
+            do: Enum.map(arguments, fn {name, value} -> {:named_arg, name, value} end),
+            else: arguments
 
-      invoke_decision_service(model, service, outer_context, args)
+        invoke_decision_service(model, service, outer_context, args)
+      end
     end
   end
 
@@ -717,11 +720,11 @@ defmodule Boxic.DMN.Evaluator do
     do: coerce_type(value, type, model)
 
   defp coerce_type(value, "string", _model) when is_binary(value), do: {:ok, value}
-  defp coerce_type(%Decimal{} = value, "number", _model), do: {:ok, value}
+  defp coerce_type(%Decimal{} = value, "number", _model), do: Boxic.FEEL.Number.admit(value)
 
   defp coerce_type(value, "number", _model) when is_binary(value) do
-    case Decimal.parse(value) do
-      {number, ""} -> {:ok, number}
+    case Boxic.FEEL.Number.parse(value) do
+      {:ok, number} -> {:ok, number}
       _ -> {:error, {:type_error, "number"}}
     end
   end

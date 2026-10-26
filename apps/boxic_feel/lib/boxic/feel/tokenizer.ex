@@ -168,7 +168,9 @@ defmodule Boxic.FEEL.Tokenizer do
   defp tokenize(<<".", digit::utf8, _rest::binary>> = input, acc)
        when digit >= ?0 and digit <= ?9 do
     {number, remaining} = take_number(input)
-    tokenize(remaining, [{:number, decimal_new(number)} | acc])
+
+    with {:ok, value} <- Boxic.FEEL.Number.parse(number),
+         do: tokenize(remaining, [{:number, value} | acc])
   end
 
   defp tokenize(<<".", rest::binary>>, acc), do: tokenize(rest, [:dot | acc])
@@ -195,7 +197,9 @@ defmodule Boxic.FEEL.Tokenizer do
   defp tokenize(<<char::utf8, _rest::binary>> = input, acc)
        when char in [?0, ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9] do
     {number, remaining} = take_number(input)
-    tokenize(remaining, [{:number, decimal_new(number)} | acc])
+
+    with {:ok, value} <- Boxic.FEEL.Number.parse(number),
+         do: tokenize(remaining, [{:number, value} | acc])
   end
 
   defp tokenize(<<char::utf8, _rest::binary>> = input, acc)
@@ -355,5 +359,4 @@ defmodule Boxic.FEEL.Tokenizer do
   defp take_while(<<>>, _predicate, acc), do: {acc, ""}
 
   defp error(code, message), do: %Error{code: code, message: message}
-  defp decimal_new(value), do: apply(Decimal, :new, [value])
 end

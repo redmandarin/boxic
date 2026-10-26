@@ -92,7 +92,7 @@ defmodule Boxic.FEEL.ArithmeticContextTest do
   end
 
   test "undefined numeric results remain local nulls, not whole-expression fallbacks" do
-    context = %{"large" => Decimal.new(1, 9, 6_144), "nan" => Decimal.new("NaN")}
+    context = %{"large" => Decimal.new(1, 9, 6_144)}
 
     for caller <- caller_contexts() do
       Decimal.Context.with(caller, fn ->
@@ -105,7 +105,9 @@ defmodule Boxic.FEEL.ArithmeticContextTest do
         assert {:ok, [nil, nil, nil, Decimal.new(1)]} ==
                  FEEL.evaluate("[1 / 0, 0 / 0, sqrt(-1), 1]")
 
-        assert {:ok, nil} = FEEL.evaluate("nan * 1", context)
+        assert {:error, %FEEL.Error{code: :invalid_number}} =
+                 FEEL.evaluate("nan * 1", %{"nan" => Decimal.new("NaN")})
+
         assert Decimal.Context.get() === caller
         assert {:error, %FEEL.Error{code: :type_error}} = FEEL.evaluate(~s(1 * "text"))
         assert Decimal.Context.get() === caller

@@ -1,7 +1,7 @@
 defmodule Boxic.FEEL.Arithmetic do
   @moduledoc false
 
-  @numeric_failures [:invalid_operation, :division_by_zero, :overflow]
+  @numeric_failures [:invalid_operation, :division_by_zero, :overflow, :underflow]
 
   # DMN 1.5, 10.3.2.3.1: decimal128 precision, nearest-even rounding.
   # This owns execution context, not literal/input admission or serialization.

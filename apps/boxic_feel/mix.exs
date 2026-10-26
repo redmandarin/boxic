@@ -34,7 +34,7 @@ defmodule BoxicFeel.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:decimal, "~> 3.1"},
+      {:decimal, "== 3.2.0"},
       {:tz, "~> 0.28.2"},
       {:ex_doc, "~> 0.38", only: :dev, runtime: false}
     ]

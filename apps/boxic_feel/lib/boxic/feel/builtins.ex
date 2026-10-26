@@ -493,7 +493,10 @@ defmodule Boxic.FEEL.Builtins do
         {:ok, stringify_value(value)}
 
       {"number", [value]} when is_binary(value) ->
-        {:ok, Decimal.new(value)}
+        case Boxic.FEEL.Number.parse(value) do
+          {:ok, number} -> {:ok, number}
+          {:error, _error} -> {:ok, nil}
+        end
 
       {"number", [%Decimal{} = value]} ->
         {:ok, value}
@@ -959,9 +962,9 @@ defmodule Boxic.FEEL.Builtins do
          true <- valid_decimal_marker?(without_grouping, decimal_separator) do
       normalized = replace_decimal_separator(without_grouping, decimal_separator)
 
-      case Decimal.parse(normalized) do
-        {number, ""} -> {:ok, number}
-        _ -> {:error, err(:evaluation_error, "invalid number literal")}
+      case Boxic.FEEL.Number.parse(normalized) do
+        {:ok, number} -> {:ok, number}
+        {:error, _error} -> {:ok, nil}
       end
     else
       false -> {:error, err(:evaluation_error, "number separators must be distinct")}
@@ -1030,8 +1033,7 @@ defmodule Boxic.FEEL.Builtins do
       {:ok,
        values
        |> Enum.reduce(Decimal.new(0), &Decimal.add/2)
-       |> Decimal.div(Decimal.new(length(values)))
-       |> Decimal.round(14)}
+       |> Decimal.div(Decimal.new(length(values)))}
     else
       {:error, err(:type_error, "mean expects numbers")}
     end

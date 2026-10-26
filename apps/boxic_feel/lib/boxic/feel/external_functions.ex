@@ -161,7 +161,7 @@ defmodule Boxic.FEEL.ExternalFunctions do
          {:ok, converted} <- convert_arguments(args, entry.parameters),
          {:ok, result} <- call(entry.callable, converted),
          {:ok, result} <- from_elixir(result, entry.returns) do
-      {:ok, result}
+      Boxic.FEEL.Number.admit(result)
     end
   end
 

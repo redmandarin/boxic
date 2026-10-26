@@ -12,9 +12,10 @@ defmodule Boxic.FEEL do
   become local FEEL nulls at arithmetic operations, not a fallback for an entire
   evaluation. Other errors retain their existing behavior.
 
-  This does not establish numeric admission or complete decimal128 conformance:
-  parsing, preconstructed context/AST values, exponent boundaries and existing
-  float-backed math have separate limitations. `parse/1` remains syntax-only.
+  Numeric admission uses the same bounded nearest-even mapping for literals,
+  Decimal inputs and results. Malformed/nonfinite/out-of-domain admission returns
+  `:invalid_number`; undefined arithmetic returns FEEL null. Parsing includes
+  numeric admission and does not establish complete model/runtime validity.
   """
 
   alias Boxic.FEEL.{Arithmetic, AST, Error, Evaluator, ExternalFunctions, Parser, Tokenizer}
@@ -122,7 +123,10 @@ defmodule Boxic.FEEL do
   @spec evaluate_ast(ast(), context()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate_ast(ast, context) when is_map(context) do
     Arithmetic.with_context(fn ->
-      with :ok <- AST.validate(ast), do: Evaluator.eval(ast, context)
+      with :ok <- AST.validate(ast),
+           {:ok, context} <- Boxic.FEEL.Number.admit(context),
+           {:ok, value} <- Evaluator.eval(ast, context),
+           do: Boxic.FEEL.Number.admit(value)
     end)
   end
 
@@ -145,7 +149,9 @@ defmodule Boxic.FEEL do
   def evaluate_unary_test(test_expression, value, context \\ %{})
       when is_binary(test_expression) and is_map(context) do
     Arithmetic.with_context(fn ->
-      Evaluator.evaluate_unary_test(test_expression, value, context)
+      with {:ok, value} <- Boxic.FEEL.Number.admit(value),
+           {:ok, context} <- Boxic.FEEL.Number.admit(context),
+           do: Evaluator.evaluate_unary_test(test_expression, value, context)
     end)
   end
 
@@ -156,7 +162,9 @@ defmodule Boxic.FEEL do
       when is_binary(test_expression) and is_map(context) and is_list(opts) do
     Arithmetic.with_context(fn ->
       with {:ok, context} <- evaluator_context(context, opts) do
-        Evaluator.evaluate_unary_test(test_expression, value, context)
+        with {:ok, value} <- Boxic.FEEL.Number.admit(value),
+             {:ok, context} <- Boxic.FEEL.Number.admit(context),
+             do: Evaluator.evaluate_unary_test(test_expression, value, context)
       end
     end)
   end

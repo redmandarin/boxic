@@ -71,7 +71,7 @@ defmodule Boxic.DMN.ArithmeticContextTest do
         [table] = Enum.filter(trace.events, &(&1.kind == :table))
         assert table.status == :ok
         assert table.result == nil
-        assert Enum.map(table.rules, & &1.result) == [large, large]
+        assert Enum.all?(table.rules, &Decimal.equal?(&1.result, large))
         assert Enum.map(table.contributing_rules, & &1.source_id) == ["overflow_1", "overflow_2"]
       end)
     end

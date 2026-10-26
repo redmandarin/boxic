@@ -48,12 +48,12 @@ defmodule Boxic.FEEL.Evaluator do
     end
   end
 
-  def eval({:literal, value}, _context), do: {:ok, value}
+  def eval({:literal, value}, _context), do: Boxic.FEEL.Number.admit(value)
 
   def eval({:identifier, name}, context) do
     case Map.fetch(context, name) do
       {:ok, value} ->
-        {:ok, value}
+        Boxic.FEEL.Number.admit(value)
 
       :error ->
         Builtins.resolve(name)
@@ -571,14 +571,14 @@ defmodule Boxic.FEEL.Evaluator do
 
   defp apply_function({:external_function, function}, args) when is_function(function, 1) do
     case function.(args) do
-      {:ok, value} -> {:ok, value}
+      {:ok, value} -> Boxic.FEEL.Number.admit(value)
       {:error, %Error{} = error} -> {:error, error}
       {:error, reason} -> {:error, error(:evaluation_error, inspect(reason))}
     end
   end
 
   defp apply_function(fun, args) when is_function(fun, length(args)) do
-    {:ok, apply(fun, args)}
+    Boxic.FEEL.Number.admit(apply(fun, args))
   end
 
   defp apply_function(_callee, _args),

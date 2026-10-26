@@ -1,0 +1,411 @@
+{
+  "purpose": "Bounded observations, not a conformance result",
+  "source_revision": "9363db7660261c0040db34e3ecf28cc6fbde93e9",
+  "script_sha256": "723167d0357282ba7c880eddc61adc256f3b98fbbee6dd763e6fa03eb1b2c4d6",
+  "runs": [
+    {
+      "elixir": "1.20.4",
+      "decimal": "3.1.1",
+      "observations": [
+        {
+          "label": "literal_35_digits_parse",
+          "message": ": number parsing syntax: \"12345678901234567890123456789012345\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_35_digits_evaluate",
+          "message": ": number parsing syntax: \"12345678901234567890123456789012345\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_ast_35_digits",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "12345678901234567890123456789012345",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_context_35_digits",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "12345678901234567890123456789012345",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_context_35_digits_plus_zero",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "1234567890123456789012345678901234",
+            "exponent": 1
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "dmn_decimal_struct_35_digits",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "12345678901234567890123456789012345",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        },
+        {
+          "error": "{:type_error, \"number\"}",
+          "label": "dmn_number_string_35_digits",
+          "status": "error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_max_adjusted_exponent",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "1",
+            "exponent": 6144
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_exponent_above_max",
+          "message": ": number parsing syntax: \"1e6145\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_min_subnormal",
+          "message": ": number parsing syntax: \"1e-6176\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_min_subnormal",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "1",
+            "exponent": -6176
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_min_subnormal_times_one",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "0",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "normal_to_subnormal_division",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "0",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "below_min_subnormal_division",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "0",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "largest_finite_times_one",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "9999999999999999999999999999999999",
+            "exponent": 6111
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "largest_finite_times_ten",
+          "status": "ok",
+          "value": null,
+          "caller_context_restored": true
+        },
+        {
+          "label": "mean_third_precision",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "33333333333333",
+            "exponent": -14
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "exp_one_precision",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "271828183",
+            "exponent": -8
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "sqrt_two_precision",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "14142135623730951",
+            "exponent": -16
+          },
+          "caller_context_restored": true
+        },
+        {
+          "error": "%Boxic.FEEL.Error{code: :evaluation_error, message: \"built-in invocation failed\"}",
+          "label": "sqrt_large_float_conversion",
+          "status": "error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_context_nan",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "NaN",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "dmn_number_string_nan",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "coefficient": "NaN",
+            "exponent": 0
+          },
+          "caller_context_restored": true
+        }
+      ]
+    },
+    {
+      "elixir": "1.20.4",
+      "decimal": "3.2.0",
+      "observations": [
+        {
+          "label": "literal_35_digits_parse",
+          "message": ": number parsing syntax: \"12345678901234567890123456789012345\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_35_digits_evaluate",
+          "message": ": number parsing syntax: \"12345678901234567890123456789012345\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_ast_35_digits",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 0,
+            "coefficient": "12345678901234567890123456789012345"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_context_35_digits",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 0,
+            "coefficient": "12345678901234567890123456789012345"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_context_35_digits_plus_zero",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 1,
+            "coefficient": "1234567890123456789012345678901234"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "dmn_decimal_struct_35_digits",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 0,
+            "coefficient": "12345678901234567890123456789012345"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "error": "{:type_error, \"number\"}",
+          "label": "dmn_number_string_35_digits",
+          "status": "error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_max_adjusted_exponent",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 6144,
+            "coefficient": "1"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_exponent_above_max",
+          "message": ": number parsing syntax: \"1e6145\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "literal_min_subnormal",
+          "message": ": number parsing syntax: \"1e-6176\"",
+          "status": "raised",
+          "exception": "Decimal.Error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_min_subnormal",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": -6176,
+            "coefficient": "1"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_min_subnormal_times_one",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": -6176,
+            "coefficient": "1"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "normal_to_subnormal_division",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": -6144,
+            "coefficient": "1"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "below_min_subnormal_division",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": -6176,
+            "coefficient": "0"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "largest_finite_times_one",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 6111,
+            "coefficient": "9999999999999999999999999999999999"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "largest_finite_times_ten",
+          "status": "ok",
+          "value": null,
+          "caller_context_restored": true
+        },
+        {
+          "label": "mean_third_precision",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": -14,
+            "coefficient": "33333333333333"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "exp_one_precision",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": -8,
+            "coefficient": "271828183"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "sqrt_two_precision",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": -16,
+            "coefficient": "14142135623730951"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "error": "%Boxic.FEEL.Error{code: :evaluation_error, message: \"built-in invocation failed\"}",
+          "label": "sqrt_large_float_conversion",
+          "status": "error",
+          "caller_context_restored": true
+        },
+        {
+          "label": "trusted_context_nan",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 0,
+            "coefficient": "NaN"
+          },
+          "caller_context_restored": true
+        },
+        {
+          "label": "dmn_number_string_nan",
+          "status": "ok",
+          "value": {
+            "sign": 1,
+            "exponent": 0,
+            "coefficient": "NaN"
+          },
+          "caller_context_restored": true
+        }
+      ]
+    }
+  ]
+}

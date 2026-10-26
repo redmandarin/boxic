@@ -7,6 +7,10 @@ The project follows Semantic Versioning. While the package is below version
 
 ## Unreleased
 
+- Fix scalar numeric PRIORITY/OUTPUT_ORDER ranking by using declared output
+  shape and FEEL numeric equality, including equal Decimals with different
+  scales. Preserve result representations, stable rule ties and evaluation counts.
+
 - Add opt-in decision and decision-service evaluation traces from the same
   execution, including dependencies, table inputs/rules/outputs, matched versus
   contributing rules, defaults and partial tagged failures. Preserve ordinary

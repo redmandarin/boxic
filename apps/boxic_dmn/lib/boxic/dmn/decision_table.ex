@@ -2,6 +2,7 @@ defmodule Boxic.DMN.DecisionTable do
   @moduledoc false
   alias Boxic.DMN.{FEEL, Trace}
   alias Boxic.DMN.Model.DecisionTable
+  alias Boxic.FEEL.Semantics
 
   def evaluate(%DecisionTable{} = table, context) do
     Trace.table(table, fn ->
@@ -109,10 +110,10 @@ defmodule Boxic.DMN.DecisionTable do
     end
   end
 
-  defp order_by_priority(%DecisionTable{outputs: [priority_output | _]}, results, context) do
+  defp order_by_priority(%DecisionTable{outputs: [priority_output | _]} = table, results, context) do
     with values when is_binary(values) <- priority_output.allowed_values,
          {:ok, priorities} <- evaluate_priority_values(values, context),
-         ranked <- Enum.map(results, &rank_result(&1, priority_output, priorities)),
+         ranked <- Enum.map(results, &rank_result(&1, table, priorities)),
          true <- Enum.all?(ranked, &match?({rank, _} when is_integer(rank), &1)) do
       ordered =
         ranked |> Enum.with_index() |> Enum.sort_by(fn {{rank, _value}, _index} -> rank end)
@@ -136,13 +137,15 @@ defmodule Boxic.DMN.DecisionTable do
     end
   end
 
-  defp rank_result(result, output, priorities) do
-    value =
-      if is_map(result),
-        do: Map.get(result, output.name || output.label),
-        else: result
+  # DMN 1.5, 10.3.2.10: a single output is its value; multiple outputs
+  # form a context. Decimal and context-valued single outputs are still scalar.
+  defp rank_result(result, %DecisionTable{outputs: [_output]}, priorities) do
+    {Enum.find_index(priorities, &Semantics.equal?(&1, result)), result}
+  end
 
-    {Enum.find_index(priorities, &(&1 == value)), result}
+  defp rank_result(result, %DecisionTable{outputs: [output | _]}, priorities) do
+    value = Map.get(result, output.name || output.label)
+    {Enum.find_index(priorities, &Semantics.equal?(&1, value)), result}
   end
 
   defp evaluate_table_inputs(inputs, context) do

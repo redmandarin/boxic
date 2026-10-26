@@ -119,11 +119,142 @@ defmodule Boxic.DMN.EvaluationTraceTest do
     end
   end
 
-  test "numeric priority's existing Decimal/map ranking defect remains separate" do
+  test "scalar numeric priorities return the actual result and contributing rules" do
     for policy <- ["PRIORITY", "OUTPUT ORDER"] do
-      trace = equivalent(table_model(policy, [{"-", "1"}]))
-      assert trace.error == :output_not_in_priority_values
-      assert only_table(trace).contributing_rules == nil
+      trace = equivalent(table_model(policy, [{"-", "1"}, {"-", "2"}]))
+      assert trace.status == :ok
+
+      assert trace.result ===
+               if(policy == "PRIORITY",
+                 do: Decimal.new(2),
+                 else: [Decimal.new(2), Decimal.new(1)]
+               )
+
+      table = only_table(trace)
+      assert table.priority_order == [1, 0]
+
+      assert table.contributing_rules ==
+               if(policy == "PRIORITY",
+                 do: [%{source_id: "rule_1", position: 1}],
+                 else: [%{source_id: "rule_1", position: 1}, %{source_id: "rule_0", position: 0}]
+               )
+    end
+  end
+
+  test "numeric priority equality agrees with FEEL across scales, signs and exponents" do
+    for policy <- ["PRIORITY", "OUTPUT ORDER"],
+        {value, priority} <- [
+          {"1.0", "1.00"},
+          {"-1.0", "-1.00"},
+          {"-0", "0.00"},
+          {"1e1", "10.00"}
+        ] do
+      assert {:ok, true} = Boxic.FEEL.evaluate("#{value} = #{priority}")
+      trace = equivalent(table_model(policy, [{"-", value}], priorities: priority))
+      assert trace.status == :ok
+      expected = Decimal.new(value)
+      assert trace.result === if(policy == "PRIORITY", do: expected, else: [expected])
+      assert only_table(trace).contributing_rules == [%{source_id: "rule_0", position: 0}]
+      assert hd(hd(only_table(trace).rules).outputs).value === expected
+    end
+  end
+
+  test "equal numeric priority entries and result scales preserve first-priority and rule ties" do
+    for policy <- ["PRIORITY", "OUTPUT ORDER"] do
+      trace =
+        equivalent(
+          table_model(policy, [{"-", "2.0"}, {"-", "1.0"}, {"-", "1.000"}],
+            priorities: "1.00, 2.0, 1.0"
+          )
+        )
+
+      assert trace.status == :ok
+      assert only_table(trace).priority_order == [1, 2, 0]
+
+      assert trace.result ===
+               if(policy == "PRIORITY",
+                 do: Decimal.new("1.0"),
+                 else: Enum.map(["1.0", "1.000", "2.0"], &Decimal.new/1)
+               )
+
+      assert Enum.map(only_table(trace).contributing_rules, & &1.source_id) ==
+               if(policy == "PRIORITY", do: ["rule_1"], else: ["rule_1", "rule_2", "rule_0"])
+    end
+  end
+
+  test "numeric input, output and priority expressions run once in each execution" do
+    for policy <- ["PRIORITY", "OUTPUT ORDER"] do
+      model =
+        table_model(policy, [{"-", "tick(1)"}, {"-", "tick(2)"}, {"-", "tick(2.00)"}],
+          input: "tick(9)",
+          priorities: "tick(2.0), tick(1.00)"
+        )
+
+      trace = equivalent(model, external_functions: registry())
+      assert_calls([9, 1, 2, 2, 2, 1, 9, 1, 2, 2, 2, 1])
+      assert trace.status == :ok
+
+      assert trace.result ===
+               if(policy == "PRIORITY",
+                 do: Decimal.new(2),
+                 else: [Decimal.new(2), Decimal.new("2.00"), Decimal.new(1)]
+               )
+
+      assert Enum.map(only_table(trace).contributing_rules, & &1.source_id) ==
+               if(policy == "PRIORITY", do: ["rule_1"], else: ["rule_1", "rule_2", "rule_0"])
+    end
+  end
+
+  test "a context-valued single output remains the value even with a matching output name" do
+    for policy <- ["PRIORITY", "OUTPUT ORDER"] do
+      model =
+        table_model(policy, [{"-", "{score: 1}"}, {"-", "{score: 2}"}],
+          priorities: "{score: 2}, {score: 1}"
+        )
+
+      table = model.decisions["decision"].expression
+      table = %{table | outputs: [%{hd(table.outputs) | name: "score"}]}
+      trace = model |> put_expression(table) |> equivalent()
+      assert trace.status == :ok
+      expected = %{"score" => Decimal.new(2)}
+
+      assert trace.result ===
+               if(policy == "PRIORITY",
+                 do: expected,
+                 else: [expected, %{"score" => Decimal.new(1)}]
+               )
+
+      assert Enum.map(only_table(trace).contributing_rules, & &1.source_id) ==
+               if(policy == "PRIORITY", do: ["rule_1"], else: ["rule_1", "rule_0"])
+    end
+  end
+
+  test "multi-output numeric priorities compare values across scale without changing shaped results" do
+    for policy <- ["PRIORITY", "OUTPUT ORDER"] do
+      model = table_model(policy, [{"-", "1.0"}, {"-", "2.00"}, {"-", "2.0"}])
+      table = model.decisions["decision"].expression
+
+      outputs = [
+        %Model.OutputClause{name: "score", allowed_values: "2.000, 1.00"},
+        %Model.OutputClause{name: "description"}
+      ]
+
+      rules =
+        Enum.map(table.rules, &%{&1 | output_entries: &1.output_entries ++ [~s("description")]})
+
+      trace = model |> put_expression(%{table | outputs: outputs, rules: rules}) |> equivalent()
+      assert trace.status == :ok
+
+      values =
+        Enum.map(
+          ["2.00", "2.0", "1.0"],
+          &%{"score" => Decimal.new(&1), "description" => "description"}
+        )
+
+      assert trace.result === if(policy == "PRIORITY", do: hd(values), else: values)
+
+      assert Enum.map(only_table(trace).contributing_rules, & &1.source_id) ==
+               if(policy == "PRIORITY", do: ["rule_1"], else: ["rule_1", "rule_2", "rule_0"])
     end
   end
 

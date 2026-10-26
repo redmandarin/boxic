@@ -91,6 +91,24 @@ entry position in every rule. The caller provides stable IDs; Boxic does not
 generate random identifiers. UI-only draft, selection, undo, and persistence
 state remains an application concern.
 
+For a bounded edit to original XML that the normalized writer cannot retain,
+use `edit_xml/3`:
+
+```elixir
+{:ok, revised_xml} = Boxic.DMN.edit_xml(original_xml, %{
+  table_id: "eligibility_table", rule_id: "adult", input_id: "age_input", text: ">= 21"
+})
+```
+
+It accepts one existing expression ID, a direct literal's decision ID, or table,
+rule and clause IDs. Surrounding admitted XML content is preserved semantically,
+including descriptions, annotations, namespaces and diagrams. Unknown XML names,
+processing instructions and unsupported edits are refused explicitly. The output
+is strictly reloaded and syntax-validated without executing business expressions.
+This is not arbitrary-model editing or byte-for-byte preservation; it does not
+make a lossy normalized Model writable. See `edit_xml/3` documentation for request
+forms and the repository's `docs/xml-preserving-edits.md` for the exact boundary.
+
 `encode_xml/2` emits deterministic DMN 1.5 XML. Its options are:
 
 ```elixir

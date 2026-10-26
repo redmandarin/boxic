@@ -144,6 +144,26 @@ defmodule Boxic.DMN do
   def validate_serializable(model, opts \\ []), do: Writer.validate_serializable(model, opts)
 
   @doc """
+  Changes one existing supported expression or table-cell text in original XML.
+
+  Select an expression by `%{element_id: id, text: text}`, or a cell by
+  `%{table_id: id, rule_id: id, input_id: id, text: text}` (or `output_id`).
+  A direct decision literal can use `%{decision_id: id, text: text}` when its
+  literal expression has no ID.
+  IDs must exist and be unambiguous. Only an optional `imports: map` is accepted.
+
+  The revised document is strictly loaded and syntax-validated without evaluation.
+  Unrelated loader-admitted XML content is retained, including descriptions,
+  annotations, diagrams and opaque extensions. This does not grant extensions
+  executable meaning. Unknown XML names, processing instructions and non-UTF-8
+  documents are refused. Preservation is semantic, not byte-for-byte; existing
+  normalized-model writer fidelity refusals are unchanged.
+  """
+  @spec edit_xml(String.t(), Boxic.DMN.XML.Editor.edit(), keyword()) ::
+          {:ok, String.t()} | {:error, [Boxic.DMN.Diagnostic.t()] | load_error()}
+  def edit_xml(xml, edit, opts \\ []), do: Boxic.DMN.XML.Editor.edit(xml, edit, opts)
+
+  @doc """
   Evaluates a named decision using the supplied input context.
 
       Boxic.DMN.evaluate(model, "Price", %{"quantity" => Decimal.new("2")})

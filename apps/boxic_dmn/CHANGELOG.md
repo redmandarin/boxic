@@ -7,6 +7,13 @@ The project follows Semantic Versioning. While the package is below version
 
 ## Unreleased
 
+- Add `edit_xml/3` for one supported expression/table-cell text edit selected by
+  actual XML IDs. Retain loader-admitted surrounding descriptions, annotations,
+  namespace bindings, diagrams and opaque extensions through xmerl document
+  editing, followed by strict loading, syntax validation and preservation checks.
+  Unsupported targets/content are refused; normalized writer fidelity checks
+  and ordinary evaluation behavior remain unchanged.
+
 - Evaluation and authoring capability validation now parse all supported FEEL
   expression and unary-test positions without executing the model. Malformed
   text, including skipped branches and unused defaults, returns positioned FEEL

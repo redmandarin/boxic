@@ -142,10 +142,17 @@ defmodule Boxic.DMN.XML.SchemaValidator do
   end
 
   @spec validate(binary()) :: :ok | {:error, [Diagnostic.t()]}
-  def validate(xml) when is_binary(xml) do
-    with :ok <- validate_safety(xml),
-         {:ok, executable} <- validator_executable() do
-      validate_with_xmllint(executable, xml)
+  def validate(xml, opts \\ []) when is_binary(xml) and is_list(opts) do
+    timeout = Keyword.get(opts, :timeout, 5000)
+
+    if is_integer(timeout) and timeout >= 0 and Keyword.keys(opts) -- [:timeout] == [] do
+      with :ok <- validate_safety(xml),
+           {:ok, executable} <- validator_executable() do
+        validate_with_xmllint(executable, xml, timeout)
+      end
+    else
+      {:error,
+       [diagnostic(:invalid_validator_options, "timeout must be a nonnegative integer", nil)]}
     end
   end
 
@@ -171,50 +178,141 @@ defmodule Boxic.DMN.XML.SchemaValidator do
     end
   end
 
-  defp validate_with_xmllint(executable, xml) do
+  # A resource owner monitors the caller while the native validator runs. Unlike
+  # System.cmd in the evaluating process, this cleanup also runs on caller kill.
+  defp validate_with_xmllint(executable, xml, timeout) do
+    caller = self()
+    {owner, monitor} = spawn_monitor(fn -> own_validator(caller, executable, xml, timeout) end)
+
+    receive do
+      {^owner, :schema_result, result} ->
+        receive do
+          {:DOWN, ^monitor, :process, ^owner, :normal} -> result
+          {:DOWN, ^monitor, :process, ^owner, reason} -> validator_owner_failed(reason)
+        end
+
+      {:DOWN, ^monitor, :process, ^owner, reason} ->
+        validator_owner_failed(reason)
+    end
+  end
+
+  defp validator_owner_failed(reason) do
+    {:error,
+     [
+       diagnostic(:schema_validation_failed, "Validator owner terminated.", %{
+         reason: inspect(reason)
+       })
+     ]}
+  end
+
+  defp own_validator(caller, executable, xml, timeout) do
+    caller_monitor = Process.monitor(caller)
+
     path =
       Path.join(
         System.tmp_dir!(),
-        "boxic-dmn-schema-#{System.unique_integer([:positive, :monotonic])}.xml"
+        "boxic-dmn-schema-#{:os.getpid()}-#{System.unique_integer([:positive, :monotonic])}.xml"
       )
 
-    try do
-      {:ok, :ok} =
-        File.open(path, [:write, :exclusive], fn io ->
-          IO.binwrite(io, xml)
-        end)
+    io = File.open!(path, [:write, :exclusive])
 
-      case System.cmd(
-             executable,
-             ["--nonet", "--noout", "--schema", schema_path(), path],
-             stderr_to_stdout: true
-           ) do
-        {_output, 0} ->
+    result =
+      try do
+        :ok = IO.binwrite(io, xml)
+        File.close(io)
+
+        port =
+          Port.open({:spawn_executable, executable}, [
+            :binary,
+            :exit_status,
+            :stderr_to_stdout,
+            :use_stdio,
+            {:args, ["--nonet", "--noout", "--schema", schema_path(), path]}
+          ])
+
+        try do
+          deadline = System.monotonic_time(:millisecond) + timeout
+          await_validator(port, caller, caller_monitor, deadline, "")
+        after
+          stop_validator(port)
+        end
+      after
+        File.close(io)
+        File.rm(path)
+      end
+
+    send(caller, {self(), :schema_result, result})
+  end
+
+  defp await_validator(port, caller, monitor, deadline, output) do
+    remaining = max(0, deadline - System.monotonic_time(:millisecond))
+
+    if remaining == 0 do
+      {:error,
+       [
+         diagnostic(
+           :schema_validation_timeout,
+           "DMN XML schema validation exceeded its deadline.",
+           nil
+         )
+       ]}
+    else
+      receive do
+        {^port, {:data, data}} ->
+          await_validator(port, caller, monitor, deadline, truncate(output <> data))
+
+        {^port, {:exit_status, 0}} ->
           :ok
 
-        {output, _status} ->
+        {^port, {:exit_status, _status}} ->
           {:error,
            [
              diagnostic(
                :xml_schema_invalid,
                "DMN XML does not conform to the normative DMN 1.5 schema.",
-               %{validator_output: truncate(output)}
+               %{validator_output: output}
+             )
+           ]}
+
+        {:DOWN, ^monitor, :process, ^caller, _reason} ->
+          :cancelled
+      after
+        remaining ->
+          {:error,
+           [
+             diagnostic(
+               :schema_validation_timeout,
+               "DMN XML schema validation exceeded its deadline.",
+               nil
              )
            ]}
       end
-    after
-      File.rm(path)
     end
-  rescue
-    exception ->
-      {:error,
-       [
-         diagnostic(
-           :schema_validation_failed,
-           "DMN XML schema validation could not be completed.",
-           %{exception: exception.__struct__}
-         )
-       ]}
+  end
+
+  defp stop_validator(port) do
+    # xmllint does not spawn descendants. Close pipes and explicitly terminate
+    # the owned native process if still alive; closing a Port alone is not a
+    # promise that arbitrary native programs terminate.
+    case Port.info(port, :os_pid) do
+      {:os_pid, pid} ->
+        System.cmd("kill", ["-KILL", Integer.to_string(pid)], stderr_to_stdout: true)
+
+        receive do
+          {^port, {:exit_status, _status}} -> :ok
+        after
+          1000 -> :ok
+        end
+
+        try do
+          Port.close(port)
+        catch
+          :error, :badarg -> :ok
+        end
+
+      nil ->
+        :ok
+    end
   end
 
   defp diagnostic(code, message, details) do

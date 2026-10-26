@@ -5,8 +5,12 @@ defmodule Boxic.DMN.Trace do
   Events are ordered by start and linked by invocation-local `event_id` and
   `parent_id`. `source_id` is nil when absent; positions are zero-based.
   Values and errors remain native terms, including Decimal and callable values.
-  No serialization, redaction, logging, persistence or truncation is performed.
-  Memory grows with visited operations, table cells and retained value sizes.
+  No redaction, logging or persistence is performed. Optional `:trace_max_bytes`
+  caps the external-term size of retained events (not the final result). On
+  exhaustion collection freezes and `truncated` is true; unfinished events remain
+  interrupted. Evaluation continues once with unchanged scheduling and results.
+  Metadata construction and a single update can temporarily exceed the retained
+  budget. Use the worker heap boundary and caller input/result quotas as well.
   """
 
   defstruct version: 1,
@@ -16,7 +20,8 @@ defmodule Boxic.DMN.Trace do
             result: nil,
             error: nil,
             events: [],
-            truncated: false
+            truncated: false,
+            truncation_reason: nil
 
   @type t :: %__MODULE__{
           version: 1,
@@ -26,13 +31,31 @@ defmodule Boxic.DMN.Trace do
           result: term(),
           error: term(),
           events: [map()],
-          truncated: false
+          truncated: boolean(),
+          truncation_reason: nil | :event_size_limit
         }
 
   @collector_key {__MODULE__, :collector}
 
   @doc false
-  def capture(model, entrypoint, callback) do
+  def capture(model, entrypoint, callback, opts \\ []) do
+    maximum = Keyword.get(opts, :trace_max_bytes, :infinity)
+
+    if maximum == :infinity or (is_integer(maximum) and maximum >= 0) do
+      capture_events(model, entrypoint, callback, maximum)
+    else
+      error =
+        Boxic.FEEL.Error.new(
+          :invalid_option,
+          "trace_max_bytes must be a nonnegative integer or :infinity"
+        )
+
+      {:error, error,
+       %__MODULE__{entrypoint: entrypoint, status: :error, stage: :options, error: error}}
+    end
+  end
+
+  defp capture_events(model, entrypoint, callback, maximum) do
     previous = Process.get(@collector_key)
 
     generated =
@@ -43,14 +66,23 @@ defmodule Boxic.DMN.Trace do
       stack: [],
       events: %{},
       stage: :options,
-      generated: generated
+      generated: generated,
+      maximum: maximum,
+      truncated: false
     })
 
     try do
       result = callback.()
       state = Process.get(@collector_key)
       events = state.events |> Enum.sort_by(&elem(&1, 0)) |> Enum.map(&elem(&1, 1))
-      trace = %__MODULE__{entrypoint: entrypoint, stage: state.stage, events: events}
+
+      trace = %__MODULE__{
+        entrypoint: entrypoint,
+        stage: state.stage,
+        events: events,
+        truncated: state.truncated,
+        truncation_reason: if(state.truncated, do: :event_size_limit, else: nil)
+      }
 
       case result do
         {:ok, value} -> {:ok, value, %{trace | status: :ok, result: value}}
@@ -88,6 +120,9 @@ defmodule Boxic.DMN.Trace do
       nil ->
         callback.()
 
+      %{truncated: true} ->
+        callback.()
+
       state ->
         id = state.next
 
@@ -99,19 +134,24 @@ defmodule Boxic.DMN.Trace do
             status: :interrupted
           })
 
-        Process.put(@collector_key, %{
-          state
-          | next: id + 1,
-            stack: [id | state.stack],
-            events: Map.put(state.events, id, event)
-        })
+        retained =
+          retain(state, %{
+            state
+            | next: id + 1,
+              stack: [id | state.stack],
+              events: Map.put(state.events, id, event)
+          })
 
-        try do
-          result = callback.()
-          annotate(completion(kind, result))
-          result
-        after
-          update(fn current -> %{current | stack: state.stack} end)
+        if retained do
+          try do
+            result = callback.()
+            annotate(completion(kind, result))
+            result
+          after
+            update(fn current -> %{current | stack: state.stack} end)
+          end
+        else
+          callback.()
         end
     end
   end
@@ -413,9 +453,23 @@ defmodule Boxic.DMN.Trace do
       nil ->
         :ok
 
-      state ->
-        Process.put(@collector_key, callback.(state))
+      %{truncated: true} ->
         :ok
+
+      state ->
+        retain(state, callback.(state))
+        :ok
+    end
+  end
+
+  defp retain(previous, candidate) do
+    if candidate.maximum == :infinity or
+         :erlang.external_size(candidate.events) <= candidate.maximum do
+      Process.put(@collector_key, candidate)
+      true
+    else
+      Process.put(@collector_key, %{previous | truncated: true})
+      false
     end
   end
 end

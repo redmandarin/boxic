@@ -44,6 +44,19 @@ defmodule Boxic.FEEL do
           | {:call, ast(), [ast()]}
   @type context :: %{optional(String.t()) => term()}
 
+  @doc "Evaluates once in an opt-in deadline/heap boundary; returns a nested evaluation result."
+  @spec evaluate_bounded(String.t(), context(), keyword()) :: {:ok, term()} | {:error, term()}
+  def evaluate_bounded(expression, context \\ %{}, limits \\ []) do
+    Boxic.FEEL.Execution.run(
+      fn ->
+        with :ok <- Boxic.FEEL.Profile.validate(expression),
+             :ok <- Boxic.FEEL.Profile.validate_data(context),
+             do: evaluate(expression, context)
+      end,
+      limits
+    )
+  end
+
   @doc """
   Parses a FEEL expression into Boxic's public AST representation.
 

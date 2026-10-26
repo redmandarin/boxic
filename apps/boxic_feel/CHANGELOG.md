@@ -33,3 +33,13 @@ The project follows Semantic Versioning. While the package is below version
   `0dbcaf9b98bc3af4e36d44a7aed95e9e85703a13`.
 - Pass 2,042 cases in the pinned FEEL TCK profile, with the 18 Java-specific
   external-function cases reported as intentionally unsupported.
+
+### Final bounded-v1 qualification iteration
+
+- Require qualified Decimal 3.2.0; unify bounded nearest-even numeric admission,
+  reject nonfinite/out-of-domain values with tagged errors, retain exact subnormals
+  and return local null for arithmetic inexact underflow. Remove mean's extra
+  post-rounding and use Decimal.sqrt for sqrt/stddev.
+- Add `Boxic.FEEL.Profile` and `evaluate_bounded/3`; deferred mathematics and
+  dynamic call paths are explicitly excluded from the opt-in bounded_v1 profile.
+- Add the monitored `Boxic.FEEL.Execution.run/2` deadline/GC-heap boundary.

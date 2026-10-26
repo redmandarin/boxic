@@ -75,3 +75,13 @@ The project follows Semantic Versioning. While the package is below version
 - Validate against DMN TCK revision
   `0dbcaf9b98bc3af4e36d44a7aed95e9e85703a13`.
 - Pass all 1,485 cases in the pinned DMN TCK profile.
+
+### Final bounded-v1 qualification iteration
+
+- Add `profile: :bounded_v1` to evaluation capability validation and evaluation,
+  with conservative static exclusions and callable-input/provider rejection.
+- Add decision/service bounded evaluation and optional retained trace-event
+  budgets, with explicit truncation metadata and unchanged single execution.
+- Own native XML validation in a monitored resource process with timeout,
+  bounded output, cancellation, native termination and temporary-file cleanup.
+- Numeric admission errors are distinguished from malformed FEEL grammar.

@@ -214,3 +214,50 @@ time-limit functions that perform remote or long-running work.
 
 Boxic DMN is licensed under Apache-2.0. The official TCK corpus and local
 compatibility artifacts are not included in the Hex package.
+
+### Opt-in bounded v1 evaluation
+
+The `:bounded_v1` capability is a conservative library profile. Before accepting a
+model, use `Boxic.DMN.validate(model, for: :evaluation, profile: :bounded_v1)`.
+Use `profile: :bounded_v1` on ordinary/traced evaluation to enforce the same gate.
+The profile checks all supported expression/test positions and unused branches.
+It excludes exp/log, dynamic calls, FEEL function definitions, callback-taking
+sort/list-replace, BKMs, imports and boxed invocation/functions. Powers require a
+literal integer exponent with magnitude at most 1024. Callable inputs and external
+function registries are rejected. Legacy evaluation is still available and does
+not imply qualification under this profile.
+
+```elixir
+Boxic.DMN.evaluate_bounded(model, "Price", inputs,
+  timeout: 1000, max_heap_words: 8_000_000,
+  trace: true, trace_max_bytes: 1_000_000)
+# {:ok, {:ok, value, trace}}, {:ok, {:error, error, trace}},
+# or {:error, boundary_error}
+```
+
+`evaluate_service_bounded/4` has the same contract. The monitored worker executes
+once and enforces the v1 gate. Deadline/worker termination errors cannot return a
+completed trace. `Boxic.FEEL.Execution` describes boundary errors. Caller death
+kills the worker; late monitor messages do not escape a completed call.
+
+`:trace_max_bytes` on ordinary traced APIs defaults to `:infinity`; bounded APIs
+default to 1 MB and require a finite budget. The budget measures retained event
+external-term size, not an exact heap ceiling or final result size. Exhaustion
+freezes evidence with `truncated: true, truncation_reason: :event_size_limit`;
+results and scheduling remain unchanged. Retained unfinished events are incomplete,
+not proof that work was skipped. Metadata/update construction may temporarily
+exceed the retained budget. The empty event container has constant overhead.
+
+The heap limit is checked at GC and accounts for shared binaries; it is not an
+instantaneous cap, NIF deadline guarantee, descendant limit or OS sandbox. Caller
+input/result quotas, concurrency, supervision and stronger isolation remain caller
+responsibilities. No process dictionary is inherited by the worker. Numeric
+execution always establishes its own scoped arithmetic context.
+
+`validate_xml_schema(xml, timeout: 5000)` bounds the native validator. Its resource
+owner monitors caller death, kills the directly owned xmllint process, closes the
+Port and removes its exclusively created temporary file. Output is capped at
+4000 bytes; existing 5 MB XML, node/depth/DTD/name protections remain. Native
+termination/reaping may add cleanup latency beyond the requested deadline.
+POSIX `kill` and xmllint are required; the library does not promise cleanup after
+VM/OS termination or kill arbitrary native descendant trees.

@@ -44,9 +44,14 @@ defmodule Boxic.DMN.Evaluator do
   def evaluate_with_trace(%Model{} = model, decision_name, context, opts)
       when is_binary(decision_name) and is_map(context) and is_list(opts) do
     Arithmetic.with_context(fn ->
-      Trace.capture(model, %{kind: :decision, requested: decision_name}, fn ->
-        evaluate_decision_entry(model, decision_name, context, opts)
-      end)
+      Trace.capture(
+        model,
+        %{kind: :decision, requested: decision_name},
+        fn ->
+          evaluate_decision_entry(model, decision_name, context, opts)
+        end,
+        opts
+      )
     end)
   end
 
@@ -86,9 +91,14 @@ defmodule Boxic.DMN.Evaluator do
   def evaluate_service_with_trace(%Model{} = model, service_name, arguments, opts)
       when is_binary(service_name) and (is_map(arguments) or is_list(arguments)) and is_list(opts) do
     Arithmetic.with_context(fn ->
-      Trace.capture(model, %{kind: :service, requested: service_name}, fn ->
-        evaluate_service_entry(model, service_name, arguments, opts)
-      end)
+      Trace.capture(
+        model,
+        %{kind: :service, requested: service_name},
+        fn ->
+          evaluate_service_entry(model, service_name, arguments, opts)
+        end,
+        opts
+      )
     end)
   end
 

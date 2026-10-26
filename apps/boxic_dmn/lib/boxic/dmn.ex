@@ -39,6 +39,54 @@ defmodule Boxic.DMN do
           | {atom(), term(), term(), term()}
 
   @doc """
+  Evaluates a decision once under the `:bounded_v1` gate in a deadline/heap worker.
+  Options: `:timeout`, `:max_heap_words`, `:trace` (default false), and
+  `:trace_max_bytes` (default 1_000_000 retained event bytes). Returns
+  `{:ok, ordinary_or_traced_return}` or an `Boxic.FEEL.Execution` boundary error.
+  A killed worker has no completed/partial trace return. No retry occurs.
+  """
+  @spec evaluate_bounded(Model.t(), String.t(), map(), keyword()) ::
+          {:ok, term()} | {:error, term()}
+  def evaluate_bounded(model, decision, context \\ %{}, opts \\ []) do
+    bounded_evaluation(model, decision, context, opts, :decision)
+  end
+
+  @doc "Service counterpart to evaluate_bounded/4, with the same v1 gate and limits."
+  @spec evaluate_service_bounded(Model.t(), String.t(), map() | list(), keyword()) ::
+          {:ok, term()} | {:error, term()}
+  def evaluate_service_bounded(model, service, arguments \\ %{}, opts \\ []) do
+    bounded_evaluation(model, service, arguments, opts, :service)
+  end
+
+  defp bounded_evaluation(model, name, inputs, opts, kind) do
+    if Keyword.keys(opts) -- [:timeout, :max_heap_words, :trace, :trace_max_bytes] != [] or
+         Keyword.get(opts, :trace, false) not in [true, false] or
+         not is_integer(Keyword.get(opts, :trace_max_bytes, 1_000_000)) or
+         Keyword.get(opts, :trace_max_bytes, 1_000_000) < 0 do
+      {:error, :invalid_execution_limits}
+    else
+      limits = Keyword.take(opts, [:timeout, :max_heap_words])
+
+      evaluation_opts = [
+        profile: :bounded_v1,
+        trace_max_bytes: Keyword.get(opts, :trace_max_bytes, 1_000_000)
+      ]
+
+      Boxic.FEEL.Execution.run(
+        fn ->
+          case {kind, Keyword.get(opts, :trace, false)} do
+            {:decision, false} -> evaluate(model, name, inputs, evaluation_opts)
+            {:decision, true} -> evaluate_with_trace(model, name, inputs, evaluation_opts)
+            {:service, false} -> evaluate_service(model, name, inputs, evaluation_opts)
+            {:service, true} -> evaluate_service_with_trace(model, name, inputs, evaluation_opts)
+          end
+        end,
+        limits
+      )
+    end
+  end
+
+  @doc """
   Loads a DMN document from either an XML string or a file path.
 
   New code should prefer `load_xml/1` or `load_file/1`, which avoid input
@@ -83,6 +131,10 @@ defmodule Boxic.DMN do
   @doc "Validates XML against the packaged normative DMN 1.5 schema family."
   @spec validate_xml_schema(String.t()) :: :ok | {:error, [Boxic.DMN.Diagnostic.t()]}
   defdelegate validate_xml_schema(xml), to: SchemaValidator, as: :validate
+
+  @doc "Schema validation with a native-validator timeout in milliseconds (default 5000)."
+  @spec validate_xml_schema(String.t(), keyword()) :: :ok | {:error, [Boxic.DMN.Diagnostic.t()]}
+  defdelegate validate_xml_schema(xml, opts), to: SchemaValidator, as: :validate
 
   @doc """
   Validates a normalized DMN model.

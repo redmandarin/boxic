@@ -181,3 +181,29 @@ therefore still selected and explicitly reported as unsupported.
 
 Boxic FEEL is licensed under Apache-2.0. The official TCK corpus and local
 compatibility artifacts are not included in the Hex package.
+
+### Qualified numeric and bounded evaluation profile
+
+Decimal 3.2.0 is required and qualified. Numeric literals, AST/context Decimals,
+number strings and host results share bounded 34-digit nearest-even admission.
+Nonfinite, malformed and out-of-domain admission returns `:invalid_number`;
+invalid `number()` conversion returns FEEL null. Numeric spelling/coefficient
+limits (8192 bytes/digits, parsed exponent magnitude 20000) are library resource
+policies. Exact subnormals down to 1e-6176 are preserved; arithmetic overflow and
+inexact underflow return local nulls. The caller's full Decimal context is restored.
+Mean has no extra decimal-place rounding; sqrt/stddev use Decimal.sqrt. Explicit
+rounding functions retain their modes. These changes do not certify all numerics.
+
+`Boxic.FEEL.Profile.validate(source)` (or with `:unary_tests`) statically enforces
+the bounded v1 math capability. exp/log, dynamic function calls/definitions,
+callback-taking sort/list-replace and nonliteral/noninteger powers are excluded;
+literal integer powers are bounded to magnitude 1024. All branches and deferred
+function references are checked. General evaluation of excluded functions remains
+legacy behavior, not qualified v1 support.
+
+`Boxic.FEEL.evaluate_bounded(source, inputs, timeout: 1000,
+max_heap_words: 8_000_000)` enforces this gate and rejects callable inputs, then
+returns `{:ok, ordinary_evaluation_return}` or a boundary error. For other trusted
+entry points, `Boxic.FEEL.Execution.run(fn -> ... end, limits)` provides the same
+worker containment without adding a capability gate. It does not sandbox host
+effects. See that module and the DMN README for heap/deadline responsibilities.

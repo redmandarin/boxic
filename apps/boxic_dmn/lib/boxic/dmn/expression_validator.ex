@@ -6,7 +6,7 @@ defmodule Boxic.DMN.ExpressionValidator do
   alias Boxic.DMN.Model.{FilterExpression, FunctionDefinition, Invocation, IteratorExpression}
   alias Boxic.DMN.Model.{ListExpression, LiteralExpression, Relation}
 
-  def validate(%Model{} = model) do
+  def validate(%Model{} = model, profile \\ :general) do
     names =
       (Map.values(model.input_data) ++ Map.values(model.decisions) ++ Map.values(model.bkms))
       |> Enum.flat_map(fn node -> [node.name | variable_names(node.variable, model)] end)
@@ -28,7 +28,7 @@ defmodule Boxic.DMN.ExpressionValidator do
         item_tests(item, model, names, [:item_definitions, name])
       end)
 
-    expressions ++ types
+    Enum.flat_map(expressions ++ types, &validate_position(&1, model, profile))
   end
 
   defp expression(%LiteralExpression{} = literal, model, names, path) do
@@ -178,13 +178,24 @@ defmodule Boxic.DMN.ExpressionValidator do
 
   defp syntax(nil, _grammar, _model, _names, _path), do: []
 
-  defp syntax(text, grammar, model, names, path) do
+  defp syntax(text, grammar, _model, names, path),
+    do: [%{text: text, grammar: grammar, names: names, path: path}]
+
+  defp validate_position(
+         %{text: text, grammar: grammar, names: names, path: path},
+         model,
+         profile
+       ) do
     normalized = FEEL.normalize_expression(text, names)
 
     result =
-      case grammar do
-        :expression -> Boxic.FEEL.parse(normalized)
-        :unary_tests -> Boxic.FEEL.validate_unary_tests(normalized)
+      if profile == :wedge_v1 do
+        Boxic.FEEL.Profile.validate(normalized, grammar)
+      else
+        case grammar do
+          :expression -> Boxic.FEEL.parse(normalized)
+          :unary_tests -> Boxic.FEEL.validate_unary_tests(normalized)
+        end
       end
 
     case result do
@@ -197,12 +208,20 @@ defmodule Boxic.DMN.ExpressionValidator do
       {:error, error} ->
         [
           %Diagnostic{
-            code: :invalid_feel_syntax,
+            code:
+              if(error.code == :unsupported_profile,
+                do: :unsupported_profile,
+                else: :invalid_feel_syntax
+              ),
             category: :feel,
             path: path,
-            message: "Invalid FEEL #{grammar}: #{error.message}",
-            specification: "DMN 1.5",
-            clause: "10.3.1.2",
+            message: "FEEL #{grammar}: #{error.message}",
+            specification:
+              if(error.code == :unsupported_profile,
+                do: "Boxic wedge_v1 library policy",
+                else: "DMN 1.5"
+              ),
+            clause: if(error.code == :unsupported_profile, do: nil, else: "10.3.1.2"),
             source_profile: model.source_profile,
             cause: error,
             details: %{grammar: grammar, text: text}

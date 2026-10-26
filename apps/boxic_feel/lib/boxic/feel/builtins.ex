@@ -572,7 +572,7 @@ defmodule Boxic.FEEL.Builtins do
   defp decimal_sqrt(%Decimal{} = value) do
     case Decimal.compare(value, Decimal.new(0)) do
       :lt -> {:ok, nil}
-      _ -> decimal_float_function(value, &:math.sqrt/1)
+      _ -> {:ok, Decimal.sqrt(value)}
     end
   end
 
@@ -937,14 +937,7 @@ defmodule Boxic.FEEL.Builtins do
         end)
         |> Decimal.div(Decimal.new(length(values) - 1))
 
-      Arithmetic.float_math(fn ->
-        {:ok,
-         variance
-         |> Decimal.to_float()
-         |> :math.sqrt()
-         |> Decimal.from_float()
-         |> Decimal.round(13, :half_even)}
-      end)
+      {:ok, Decimal.sqrt(variance)}
     end
   end
 

@@ -11,21 +11,22 @@ defmodule Boxic.FEEL.Parser do
 
   # DMN 1.5, 10.3.1: unary tests have their own entry grammar. In
   # particular, dash and comma-separated comparisons are not expressions.
-  def validate_unary_tests([:minus]), do: :ok
+  def validate_unary_tests(tokens, checker \\ &Boxic.FEEL.AST.validate/1)
+  def validate_unary_tests([:minus], _checker), do: :ok
 
-  def validate_unary_tests([:not, :lparen | tokens]) do
-    with {:ok, [:rparen]} <- validate_positive_tests(tokens), do: :ok
+  def validate_unary_tests([:not, :lparen | tokens], checker) do
+    with {:ok, [:rparen]} <- validate_positive_tests(tokens, checker), do: :ok
   end
 
-  def validate_unary_tests(tokens) do
-    with {:ok, []} <- validate_positive_tests(tokens), do: :ok
+  def validate_unary_tests(tokens, checker) do
+    with {:ok, []} <- validate_positive_tests(tokens, checker), do: :ok
   end
 
-  defp validate_positive_tests(tokens) do
+  defp validate_positive_tests(tokens, checker) do
     with {:ok, ast, rest} <- parse_positive_test(tokens),
-         :ok <- Boxic.FEEL.AST.validate(ast) do
+         :ok <- checker.(ast) do
       case rest do
-        [:comma | tail] -> validate_positive_tests(tail)
+        [:comma | tail] -> validate_positive_tests(tail, checker)
         rest -> {:ok, rest}
       end
     end

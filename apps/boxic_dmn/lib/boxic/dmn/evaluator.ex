@@ -51,7 +51,8 @@ defmodule Boxic.DMN.Evaluator do
   end
 
   defp evaluate_decision_entry(model, decision_name, context, opts) do
-    with {:ok, context} <- attach_external_functions(context, opts),
+    with :ok <- validate_execution_profile(model, context, opts),
+         {:ok, context} <- attach_external_functions(context, opts),
          :ok <- Trace.stage(:preflight),
          :ok <- Validator.validate_for_evaluation(model),
          :ok <- Trace.stage(:input_coercion),
@@ -92,7 +93,8 @@ defmodule Boxic.DMN.Evaluator do
   end
 
   defp evaluate_service_entry(model, service_name, arguments, opts) do
-    with :ok <- Trace.stage(:preflight),
+    with :ok <- validate_execution_profile(model, arguments, opts),
+         :ok <- Trace.stage(:preflight),
          :ok <- Validator.validate_for_evaluation(model),
          :ok <- Trace.stage(:options),
          {:ok, outer_context} <- attach_external_functions(%{}, opts),
@@ -107,6 +109,25 @@ defmodule Boxic.DMN.Evaluator do
 
         invoke_decision_service(model, service, outer_context, args)
       end
+    end
+  end
+
+  defp validate_execution_profile(model, inputs, opts) do
+    case Keyword.get(opts, :profile) do
+      nil ->
+        :ok
+
+      :wedge_v1 ->
+        if Keyword.has_key?(opts, :external_functions) do
+          {:error,
+           Boxic.FEEL.Error.new(:unsupported_profile, "external functions are outside wedge_v1")}
+        else
+          with :ok <- Validator.validate(model, for: :evaluation, profile: :wedge_v1),
+               do: Boxic.FEEL.Profile.validate_data(inputs)
+        end
+
+      _ ->
+        {:error, Boxic.FEEL.Error.new(:invalid_option, "unknown evaluation profile")}
     end
   end
 

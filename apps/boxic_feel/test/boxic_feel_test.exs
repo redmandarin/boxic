@@ -192,7 +192,7 @@ defmodule Boxic.FEELTest do
     assert Enum.map(modes, &Decimal.to_string/1) == ["1", "3"]
 
     assert {:ok, stddev} = Boxic.FEEL.evaluate("stddev([2, 4, 7, 5])")
-    assert Decimal.equal?(stddev, Decimal.new("2.0816659994661"))
+    assert Decimal.equal?(stddev, Decimal.new("2.081665999466132735282297706979931"))
   end
 
   test "Unicode escapes, regex functions, and canonical string conversion" do

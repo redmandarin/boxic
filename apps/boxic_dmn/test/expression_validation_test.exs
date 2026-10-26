@@ -301,6 +301,36 @@ defmodule Boxic.DMN.ExpressionValidationTest do
              DMN.validate(table_model, for: :evaluation)
   end
 
+  test "v1 gate checks every supported expression/test position, including unused work" do
+    for position <- @positions do
+      model = xml_round_trip(model_for(position, "exp(1)"))
+      assert {:error, diagnostics} = DMN.validate(model, for: :evaluation, profile: :wedge_v1)
+      assert Enum.any?(diagnostics, &(&1.code == :unsupported_profile and &1.path != []))
+    end
+
+    assert :ok =
+             DMN.validate(xml_round_trip(model_for(:literal, "sqrt(2)")),
+               for: :evaluation,
+               profile: :wedge_v1
+             )
+  end
+
+  test "v1 evaluation enforces its gate and rejects callable input escapes" do
+    model = xml_round_trip(model_for(:literal, "exp(1)"))
+    assert {:error, diagnostics} = DMN.evaluate(model, "Decision", %{}, profile: :wedge_v1)
+    assert Enum.any?(diagnostics, &(&1.code == :unsupported_profile))
+    safe = xml_round_trip(model_for(:literal, "sqrt(2)"))
+
+    assert {:error, %Boxic.FEEL.Error{code: :unsupported_profile}} =
+             DMN.evaluate(safe, "Decision", %{"sqrt" => fn _ -> 1 end}, profile: :wedge_v1)
+
+    assert {:error, %Boxic.FEEL.Error{code: :unsupported_profile}, _trace} =
+             DMN.evaluate_with_trace(safe, "Decision", %{},
+               profile: :wedge_v1,
+               external_functions: Boxic.FEEL.ExternalFunctions.new()
+             )
+  end
+
   defp model_for(:bkm, text) do
     model = base_model()
 

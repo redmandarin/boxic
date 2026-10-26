@@ -61,6 +61,14 @@ defmodule Boxic.DMN.Validator do
     end
   end
 
+  def validate(%Model{} = model, for: :evaluation, profile: :wedge_v1) do
+    diagnostics =
+      model_diagnostics(model, :evaluation) ++
+        Boxic.DMN.ExpressionValidator.validate(model, :wedge_v1) ++ v1_structure_errors(model, [])
+
+    if diagnostics == [], do: :ok, else: {:error, diagnostics}
+  end
+
   def validate(%Model{} = model, for: capability)
       when capability in [:evaluation, :authoring] do
     diagnostics =
@@ -86,6 +94,46 @@ defmodule Boxic.DMN.Validator do
        }
      ]}
   end
+
+  defp v1_structure_errors(%Model{} = model, path) do
+    restrictions =
+      for {field, values} <- [bkms: model.bkms, imports: model.imports], map_size(values) > 0 do
+        v1_diagnostic(path ++ [field], "wedge_v1 excludes BKMs and imports")
+      end
+
+    restrictions ++ v1_structure_errors(Map.values(model.decisions), path ++ [:decisions])
+  end
+
+  defp v1_structure_errors(%module{} = value, path)
+       when module in [Boxic.DMN.Model.Invocation, Boxic.DMN.Model.FunctionDefinition] do
+    [v1_diagnostic(path ++ [value.id], "boxed invocation/functions are outside wedge_v1")]
+  end
+
+  defp v1_structure_errors(values, path) when is_map(values) do
+    Enum.flat_map(Map.to_list(values), fn {key, value} ->
+      v1_structure_errors(value, path ++ [key])
+    end)
+  end
+
+  defp v1_structure_errors(values, path) when is_list(values) do
+    values
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {value, index} ->
+      v1_structure_errors(value, path ++ [index])
+    end)
+  end
+
+  defp v1_structure_errors(_value, _path), do: []
+
+  defp v1_diagnostic(path, message),
+    do: %Diagnostic{
+      code: :unsupported_profile,
+      category: :dmn_model,
+      path: path,
+      message: message,
+      specification: "Boxic wedge_v1 library policy",
+      source_profile: :dmn_1_5
+    }
 
   defp model_diagnostics(model, capability) do
     errors =

@@ -1,5 +1,7 @@
 # Qualified package source baseline
 
+Historical checkpoint: see [the final v1 qualification](wedge-v1-final-qualification.md) for the current numeric/dependency/profile/containment contract.
+
 Reconciled 2026-10-26 before implementation. No Wedge dependency files changed.
 
 ## Git provenance

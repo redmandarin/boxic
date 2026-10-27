@@ -1,0 +1,1337 @@
+{
+  "profile": "bounded_v1",
+  "otp": "28",
+  "elixir": "1.20.4",
+  "decimal": "3.2.0",
+  "revision": "a162739daee85fb28e9d3bec2f306505992dae0f",
+  "summary": {
+    "passed": 1957,
+    "excluded": 1537,
+    "rejected_negative_fixture": 51
+  },
+  "source_revision": "f3368d3c6779dc163a3f0220213c8b234db3345e",
+  "selected_legacy_implemented_cases": 3545,
+  "by_group": {
+    "1111-feel-matches-function": {
+      "passed": 40
+    },
+    "0004-simpletable-U": {
+      "passed": 3
+    },
+    "0082-feel-coercion": {
+      "excluded": 36
+    },
+    "0067-feel-split-function": {
+      "passed": 9
+    },
+    "0109-ruleOrder-hitpolicy": {
+      "passed": 3
+    },
+    "0012-list-functions": {
+      "passed": 19
+    },
+    "0087-chapter-11-example": {
+      "excluded": 9
+    },
+    "0061-feel-median-function": {
+      "passed": 14
+    },
+    "1142-feel-round-down-function": {
+      "passed": 16
+    },
+    "0053-feel-log-function": {
+      "excluded": 15
+    },
+    "1151-boxed-filter": {
+      "passed": 4
+    },
+    "1146-feel-context-put-function": {
+      "passed": 30
+    },
+    "0009-append-flatten": {
+      "passed": 10
+    },
+    "0096-feel-day-of-week-function": {
+      "passed": 12
+    },
+    "0034-drg-scopes": {
+      "excluded": 12
+    },
+    "1103-feel-substring-function": {
+      "passed": 11
+    },
+    "0079-feel-string-function": {
+      "passed": 37
+    },
+    "0036-dt-variable-input": {
+      "passed": 24
+    },
+    "0063-feel-stddev-function": {
+      "passed": 12
+    },
+    "0008-listGen": {
+      "passed": 10
+    },
+    "1109-feel-replace-function": {
+      "passed": 28
+    },
+    "0088-recursion": {
+      "excluded": 2
+    },
+    "0095-feel-day-of-year-function": {
+      "passed": 19
+    },
+    "0013-sort": {
+      "excluded": 3
+    },
+    "1154-boxed-every": {
+      "passed": 5
+    },
+    "1161-boxed-list-expression": {
+      "passed": 2
+    },
+    "0088-no-decision-logic": {
+      "passed": 1
+    },
+    "0037-dt-on-bkm-implicit-params": {
+      "excluded": 2
+    },
+    "0055-feel-odd-function": {
+      "passed": 17
+    },
+    "1131-feel-function-invocation": {
+      "excluded": 8
+    },
+    "0084-feel-for-loops": {
+      "passed": 24
+    },
+    "0108-first-hitpolicy": {
+      "passed": 3
+    },
+    "0110-outputOrder-hitpolicy": {
+      "passed": 3
+    },
+    "0081-feel-getentries-function": {
+      "passed": 9
+    },
+    "0113-outputOrder-hitpolicy-singleinoutcol": {
+      "passed": 3
+    },
+    "0090-feel-paths": {
+      "passed": 4
+    },
+    "1149-feel-today-function": {
+      "passed": 2
+    },
+    "0002-input-data-number": {
+      "passed": 1
+    },
+    "0060-feel-any-function": {
+      "passed": 17
+    },
+    "1106-feel-lower-case-function": {
+      "passed": 9
+    },
+    "1148-feel-now-function": {
+      "passed": 2
+    },
+    "0101-feel-constants": {
+      "passed": 6
+    },
+    "0114-min-collect-hitpolicy": {
+      "passed": 3
+    },
+    "0100-feel-constants": {
+      "passed": 2
+    },
+    "0005-simpletable-A": {
+      "passed": 3
+    },
+    "0056-feel-modulo-function": {
+      "passed": 28
+    },
+    "0020-vacation-days": {
+      "passed": 7
+    },
+    "1120-feel-duration-function": {
+      "passed": 50
+    },
+    "1144-feel-round-half-down-function": {
+      "passed": 16
+    },
+    "0072-feel-in": {
+      "passed": 327
+    },
+    "0033-for-loops": {
+      "excluded": 4
+    },
+    "0111-first-hitpolicy-singleoutputcol": {
+      "passed": 3
+    },
+    "0011-insert-remove": {
+      "passed": 6
+    },
+    "0008-LX-arithmetic": {
+      "excluded": 3
+    },
+    "0057-feel-context": {
+      "rejected_negative_fixture": 11
+    },
+    "0062-feel-mode-function": {
+      "passed": 13
+    },
+    "0041-multiple-nestedcontext": {
+      "excluded": 3
+    },
+    "1105-feel-upper-case-function": {
+      "passed": 8
+    },
+    "0085-decision-services": {
+      "excluded": 19
+    },
+    "0119-multi-collect-hitpolicy": {
+      "passed": 3
+    },
+    "1143-feel-round-half-up-function": {
+      "passed": 16
+    },
+    "0052-feel-exp-function": {
+      "excluded": 15
+    },
+    "1156-range-function": {
+      "passed": 56
+    },
+    "0116-count-collect-hitpolicy": {
+      "passed": 3
+    },
+    "0078-feel-infinity": {
+      "passed": 2
+    },
+    "0016-some-every": {
+      "excluded": 8
+    },
+    "0118-multi-priority-hitpolicy": {
+      "passed": 3
+    },
+    "0007-date-time": {
+      "passed": 19
+    },
+    "1116-feel-time-function": {
+      "passed": 83
+    },
+    "0100-arithmetic": {
+      "excluded": 1087
+    },
+    "0040-singlenestedcontext": {
+      "excluded": 3
+    },
+    "0009-invocation-arithmetic": {
+      "excluded": 3
+    },
+    "1107-feel-substring-before-function": {
+      "passed": 9
+    },
+    "0073-feel-comments": {
+      "passed": 3
+    },
+    "0031-user-defined-functions": {
+      "excluded": 3
+    },
+    "0103-feel-is-function": {
+      "passed": 50
+    },
+    "0050-feel-abs-function": {
+      "passed": 17
+    },
+    "0010-concatenate": {
+      "passed": 6
+    },
+    "0115-sum-collect-hitpolicy": {
+      "passed": 3
+    },
+    "1115-feel-date-function": {
+      "passed": 52
+    },
+    "0004-lending": {
+      "excluded": 11
+    },
+    "0054-feel-even-function": {
+      "passed": 17
+    },
+    "0075-feel-exponent": {
+      "excluded": 12
+    },
+    "0089-nested-inputdata-imports": {
+      "excluded": 1
+    },
+    "1117-feel-date-and-time-function": {
+      "passed": 88
+    },
+    "0066-feel-negation": {
+      "passed": 6
+    },
+    "1102-feel-ceiling-function": {
+      "passed": 17
+    },
+    "0070-feel-instance-of": {
+      "excluded": 142
+    },
+    "1100-feel-decimal-function": {
+      "passed": 10
+    },
+    "0001-filter": {
+      "passed": 1
+    },
+    "1101-feel-floor-function": {
+      "passed": 17
+    },
+    "1145-feel-context-function": {
+      "passed": 18
+    },
+    "0006-join": {
+      "passed": 1
+    },
+    "0003-input-data-string-allowed-values": {
+      "passed": 1
+    },
+    "1104-feel-string-length-function": {
+      "passed": 6
+    },
+    "0001-input-data-string": {
+      "passed": 1
+    },
+    "0007-simpletable-P2": {
+      "passed": 3
+    },
+    "1121-feel-years-and-months-duration-function": {
+      "passed": 36
+    },
+    "0105-feel-math": {
+      "excluded": 33
+    },
+    "0015-all-any": {
+      "passed": 10
+    },
+    "0086-import": {
+      "excluded": 2
+    },
+    "0059-feel-all-function": {
+      "passed": 19
+    },
+    "0065-feel-disjunction": {
+      "passed": 19
+    },
+    "0107-feel-ternary-logic-not": {
+      "passed": 3
+    },
+    "0064-feel-conjunction": {
+      "passed": 19
+    },
+    "0076-feel-external-java": {
+      "excluded": 18
+    },
+    "0083-feel-unicode": {
+      "passed": 14
+    },
+    "1140-feel-string-join-function": {
+      "passed": 22
+    },
+    "0106-feel-ternary-logic": {
+      "passed": 18
+    },
+    "0017-tableTests": {
+      "passed": 4
+    },
+    "0010-multi-output-U": {
+      "passed": 3
+    },
+    "0071-feel-between": {
+      "passed": 38
+    },
+    "1155-list-replace-function": {
+      "excluded": 22
+    },
+    "0003-iteration": {
+      "excluded": 1
+    },
+    "0005-literal-invocation": {
+      "excluded": 3
+    },
+    "0117-multi-any-hitpolicy": {
+      "passed": 3
+    },
+    "0002-string-functions": {
+      "passed": 4
+    },
+    "0068-feel-equality": {
+      "passed": 114
+    },
+    "1108-feel-substring-after-function": {
+      "passed": 10
+    },
+    "1153-boxed-some": {
+      "passed": 5
+    },
+    "0102-feel-constants": {
+      "passed": 4
+    },
+    "0099-arithmetic-negation": {
+      "excluded": 14
+    },
+    "1110-feel-contains-function": {
+      "passed": 10
+    },
+    "0058-feel-number-function": {
+      "rejected_negative_fixture": 21
+    },
+    "0074-feel-properties": {
+      "passed": 53
+    },
+    "0092-feel-lambda": {
+      "excluded": 18
+    },
+    "0097-feel-month-of-year-function": {
+      "passed": 12
+    },
+    "0112-ruleOrder-hitpolicy-singleinoutcol": {
+      "passed": 3
+    },
+    "1147-feel-context-merge-function": {
+      "passed": 14
+    },
+    "0069-feel-list": {
+      "passed": 35
+    },
+    "0019-flight-rebooking": {
+      "excluded": 1
+    },
+    "1130-feel-interval": {
+      "excluded": 14
+    },
+    "0038-dt-on-bkm-explicit-params": {
+      "excluded": 2
+    },
+    "1141-feel-round-up-function": {
+      "passed": 16
+    },
+    "0093-feel-at-literals": {
+      "rejected_negative_fixture": 19
+    },
+    "0030-user-defined-functions": {
+      "excluded": 2
+    },
+    "0035-test-structure-output": {
+      "excluded": 3
+    },
+    "0080-feel-getvalue-function": {
+      "passed": 14
+    },
+    "1152-boxed-for": {
+      "passed": 2
+    },
+    "0051-feel-sqrt-function": {
+      "passed": 15
+    },
+    "0077-feel-nan": {
+      "passed": 1
+    },
+    "0094-feel-product-function": {
+      "passed": 13
+    },
+    "0021-singleton-list": {
+      "passed": 5
+    },
+    "1150-boxed-conditional": {
+      "passed": 3
+    },
+    "0091-local-hrefs": {
+      "excluded": 1
+    },
+    "0014-loan-comparison": {
+      "excluded": 2
+    },
+    "0098-feel-week-of-year-function": {
+      "passed": 19
+    },
+    "0032-conditionals": {
+      "passed": 6
+    },
+    "0006-simpletable-P1": {
+      "passed": 3
+    },
+    "0039-dt-list-semantics": {
+      "passed": 2
+    }
+  },
+  "rejected_negative_fixtures": [
+    {
+      "id": "001",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "002",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision002",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "003",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision003",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "003_a",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision003_a",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "004",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision004",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "005",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision005",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "006",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision006",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "007",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision007",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "008",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision008",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "009",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision009",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "010",
+      "status": "rejected_negative_fixture",
+      "group": "0057-feel-context",
+      "decision": "decision010",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision008",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "001",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "002",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision002",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "003",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision003",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "003_a",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision003_a",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "004",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision004",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "004_a",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision004_a",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "004_b",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision004_b",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "004_c",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision004_c",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "005",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision005",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "006",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision006",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "007",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision007",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "008",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision008",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "009",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision009",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "010",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision010",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "011",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision011",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "012",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision012",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "013",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision013",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "014",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision014",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "015",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision015",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "016",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision016",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "017",
+      "status": "rejected_negative_fixture",
+      "group": "0058-feel-number-function",
+      "decision": "decision017",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_decision014",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "date_001",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "date_001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "date_002",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "date_002",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "datetime_001",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "datetime_001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "datetime_002",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "datetime_002",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "datetime_003",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "datetime_003",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "datetime_004",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "datetime_004",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "datetime_005",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "datetime_005",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "datetime_006",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "datetime_006",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "dt_duration_001",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "dt_duration_001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "dt_duration_002",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "dt_duration_002",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "test_001",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "test_001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "time_001",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "time_001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "time_002",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "time_002",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "time_003",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "time_003",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "time_004",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "time_004",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "time_005",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "time_005",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "time_006",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "time_006",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "ym_duration_001",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "ym_duration_001",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    },
+    {
+      "id": "ym_duration_002",
+      "status": "rejected_negative_fixture",
+      "group": "0093-feel-at-literals",
+      "decision": "ym_duration_002",
+      "diagnostic_codes": [
+        "invalid_feel_syntax"
+      ],
+      "diagnostic_paths": [
+        [
+          "decisions",
+          "_test_001",
+          "expression",
+          "text"
+        ]
+      ]
+    }
+  ],
+  "failures": [],
+  "qualification_script_sha256": "92a3ec88c2e2caec2a3d9dff541e5d34aec00e8fd053352e9e63697dbcdfc137"
+}

@@ -1,5 +1,7 @@
 # Numeric construction and exponent audit
 
+Historical checkpoint: see [the final v1 qualification](wedge-v1-final-qualification.md) for the current numeric/dependency/profile/containment contract.
+
 Observation-only follow-up to arithmetic correction
 `9363db7660261c0040db34e3ecf28cc6fbde93e9`. This audit changes no execution,
 admission, dependency, empty-COLLECT or resource-limit behavior. The

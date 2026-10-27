@@ -1,5 +1,7 @@
 # Scoped arithmetic review checkpoint
 
+Historical checkpoint: see [the final v1 qualification](wedge-v1-final-qualification.md) for the current numeric/dependency/profile/containment contract.
+
 Base: accepted priority fix `b61d3a23eb1fd25d86ebc1acc4d7eb24454fb057`
 and recommendations `25b02eac06ecaccd3db6f2ae4f62ac01b2de2349`.
 Branch: `fix/scoped-feel-arithmetic` in `/private/tmp/boxic-xml-preserving-edits`.

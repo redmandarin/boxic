@@ -1,0 +1,209 @@
+{
+  "elixir": "1.20.4",
+  "decimal": "3.2.0",
+  "observations": [
+    {
+      "label": "literal_35_digits_parse",
+      "status": "parsed",
+      "value": {
+        "sign": 1,
+        "coefficient": "1234567890123456789012345678901234",
+        "exponent": 1
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "literal_35_digits_evaluate",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1234567890123456789012345678901234",
+        "exponent": 1
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "trusted_ast_35_digits",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1234567890123456789012345678901234",
+        "exponent": 1
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "trusted_context_35_digits",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1234567890123456789012345678901234",
+        "exponent": 1
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "trusted_context_35_digits_plus_zero",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1234567890123456789012345678901234",
+        "exponent": 1
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "dmn_decimal_struct_35_digits",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1234567890123456789012345678901234",
+        "exponent": 1
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "dmn_number_string_35_digits",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1234567890123456789012345678901234",
+        "exponent": 1
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "literal_max_adjusted_exponent",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1000000000000000000000000000000000",
+        "exponent": 6111
+      },
+      "caller_context_restored": true
+    },
+    {
+      "error": "%Boxic.FEEL.Error{code: :invalid_number, message: \"number is malformed, nonfinite, outside the FEEL domain or admission limits\"}",
+      "label": "literal_exponent_above_max",
+      "status": "error",
+      "caller_context_restored": true
+    },
+    {
+      "label": "literal_min_subnormal",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1",
+        "exponent": -6176
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "trusted_min_subnormal",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1",
+        "exponent": -6176
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "trusted_min_subnormal_times_one",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1",
+        "exponent": -6176
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "normal_to_subnormal_division",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1",
+        "exponent": -6144
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "below_min_subnormal_division",
+      "status": "ok",
+      "value": null,
+      "caller_context_restored": true
+    },
+    {
+      "label": "largest_finite_times_one",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "9999999999999999999999999999999999",
+        "exponent": 6111
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "largest_finite_times_ten",
+      "status": "ok",
+      "value": null,
+      "caller_context_restored": true
+    },
+    {
+      "label": "mean_third_precision",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "3333333333333333333333333333333333",
+        "exponent": -34
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "exp_one_precision",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "271828183",
+        "exponent": -8
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "sqrt_two_precision",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1414213562373095048801688724209698",
+        "exponent": -33
+      },
+      "caller_context_restored": true
+    },
+    {
+      "label": "sqrt_large_float_conversion",
+      "status": "ok",
+      "value": {
+        "sign": 1,
+        "coefficient": "1",
+        "exponent": 3000
+      },
+      "caller_context_restored": true
+    },
+    {
+      "error": "%Boxic.FEEL.Error{code: :invalid_number, message: \"number is malformed, nonfinite, outside the FEEL domain or admission limits\"}",
+      "label": "trusted_context_nan",
+      "status": "error",
+      "caller_context_restored": true
+    },
+    {
+      "error": "{:type_error, \"number\"}",
+      "label": "dmn_number_string_nan",
+      "status": "error",
+      "caller_context_restored": true
+    }
+  ],
+  "source_revision": "f3368d3c6779dc163a3f0220213c8b234db3345e",
+  "script_sha256": "723167d0357282ba7c880eddc61adc256f3b98fbbee6dd763e6fa03eb1b2c4d6",
+  "interpretation": "Numeric admission/context observations; exp remains legacy and is excluded by bounded_v1. Not a conformance result."
+}

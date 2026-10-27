@@ -2,6 +2,17 @@ defmodule Boxic.FEEL.MathematicsProfileTest do
   use ExUnit.Case, async: true
   alias Boxic.FEEL
 
+  test "integer powers do not square after the last required multiplication" do
+    for {source, expected} <- [
+          {"1e6144 ** 1", Decimal.new(1, 1, 6144)},
+          {"1e-6176 ** 1", Decimal.new(1, 1, -6176)},
+          {"1e4000 ** -1", Decimal.new(1, 1, -4000)}
+        ] do
+      assert {:ok, result} = FEEL.evaluate(source)
+      assert Decimal.equal?(result, expected)
+    end
+  end
+
   test "sqrt and stddev use qualified decimal precision across large exponents" do
     assert {:ok, value} = FEEL.evaluate("sqrt(2)")
     assert value == Decimal.new("1.414213562373095048801688724209698")

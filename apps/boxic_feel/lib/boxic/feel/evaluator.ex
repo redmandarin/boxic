@@ -1058,6 +1058,8 @@ defmodule Boxic.FEEL.Evaluator do
 
   defp decimal_integer_power(_base, 0, acc), do: acc
 
+  defp decimal_integer_power(base, 1, acc), do: decimal_mult(acc, base)
+
   defp decimal_integer_power(base, exponent, acc) when rem(exponent, 2) == 1 do
     decimal_integer_power(decimal_mult(base, base), div(exponent, 2), decimal_mult(acc, base))
   end

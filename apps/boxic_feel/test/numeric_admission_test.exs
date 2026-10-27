@@ -63,4 +63,21 @@ defmodule Boxic.FEEL.NumericAdmissionTest do
     assert {:error, %FEEL.Error{code: :invalid_number}} =
              FEEL.evaluate("bad()", %{}, external_functions: registry)
   end
+
+  test "fractional duration construction is bounded, rounded and never leaks constructor failures" do
+    caller = %Decimal.Context{precision: 2, rounding: :up, traps: [:inexact]}
+
+    Decimal.Context.with(caller, fn ->
+      spelling = "PT0.12345678901234567890123456789012345S"
+      assert {:ok, duration} = FEEL.evaluate(~s|@"#{spelling}"|)
+      assert duration.seconds == Decimal.new("0.1234567890123456789012345678901234")
+      assert {:ok, ^duration} = FEEL.evaluate(~s|duration("#{spelling}")|)
+      assert Decimal.Context.get() === caller
+
+      for value <- ["Pinvalid", "PT" <> String.duplicate("1", 8193) <> "S", "2020-99-99"] do
+        assert {:error, %FEEL.Error{code: :invalid_syntax}} = FEEL.parse(~s|@"#{value}"|)
+        assert Decimal.Context.get() === caller
+      end
+    end)
+  end
 end

@@ -23,7 +23,18 @@ defmodule Boxic.FEEL.Duration do
       Boxic.FEEL.Duration.parse_iso8601("P1Y2M")
   """
   @spec parse_iso8601(String.t()) :: {:ok, t()} | {:error, :invalid_duration}
-  def parse_iso8601(value) when is_binary(value) do
+  def parse_iso8601(value) when is_binary(value) and byte_size(value) <= 8_192 do
+    Boxic.FEEL.Arithmetic.with_context(fn ->
+      case Boxic.FEEL.Arithmetic.protect(fn -> parse_duration(value) end) do
+        {:ok, nil} -> {:error, :invalid_duration}
+        result -> result
+      end
+    end)
+  end
+
+  def parse_iso8601(value) when is_binary(value), do: {:error, :invalid_duration}
+
+  defp parse_duration(value) do
     regex =
       ~r/^(?<sign>-)?P(?:(?<years>\d+)Y)?(?:(?<months>\d+)M)?(?:(?<days>\d+)D)?(?:T(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+(?:\.\d*)?)S)?)?$/
 
@@ -35,29 +46,35 @@ defmodule Boxic.FEEL.Duration do
         if Enum.all?(~w(years months days hours minutes seconds), &(captures[&1] in [nil, ""])) do
           {:error, :invalid_duration}
         else
-          years = int(captures["years"])
-          months = int(captures["months"])
-          days = int(captures["days"])
-          hours = int(captures["hours"])
-          minutes = int(captures["minutes"])
-          seconds = number(captures["seconds"])
-
-          sign = if captures["sign"] == "-", do: -1, else: 1
-
-          kind =
-            if captures["years"] not in [nil, ""] or captures["months"] not in [nil, ""],
-              do: :year_month,
-              else: :day_time
-
-          {:ok,
-           %__MODULE__{
-             kind: kind,
-             months: sign * (years * 12 + months),
-             seconds:
-               multiply(sign, add_number(days * 86_400 + hours * 3_600 + minutes * 60, seconds))
-           }}
+          with {:ok, seconds} <- number(captures["seconds"]) do
+            build_duration(captures, seconds)
+          else
+            {:error, _reason} -> {:error, :invalid_duration}
+          end
         end
     end
+  end
+
+  defp build_duration(captures, seconds) do
+    years = int(captures["years"])
+    months = int(captures["months"])
+    days = int(captures["days"])
+    hours = int(captures["hours"])
+    minutes = int(captures["minutes"])
+
+    sign = if captures["sign"] == "-", do: -1, else: 1
+
+    kind =
+      if captures["years"] not in [nil, ""] or captures["months"] not in [nil, ""],
+        do: :year_month,
+        else: :day_time
+
+    {:ok,
+     %__MODULE__{
+       kind: kind,
+       months: sign * (years * 12 + months),
+       seconds: multiply(sign, add_number(days * 86_400 + hours * 3_600 + minutes * 60, seconds))
+     }}
   end
 
   @doc """
@@ -307,13 +324,13 @@ defmodule Boxic.FEEL.Duration do
   defp int(""), do: 0
   defp int(value), do: String.to_integer(value)
 
-  defp number(nil), do: 0
-  defp number(""), do: 0
+  defp number(nil), do: {:ok, 0}
+  defp number(""), do: {:ok, 0}
 
   defp number(value) do
     if String.contains?(value, "."),
-      do: Decimal.new(String.trim_trailing(value, ".")),
-      else: int(value)
+      do: Boxic.FEEL.Number.parse(String.trim_trailing(value, ".")),
+      else: {:ok, int(value)}
   end
 
   defp decimal(%Decimal{} = value), do: value

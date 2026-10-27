@@ -81,3 +81,10 @@ BKMs, imports and boxed invocation. This is intentionally narrower than the
 legacy implemented TCK profile; exclusions must be reported separately from
 failures and must not be represented as supported merely because legacy
 execution passes them.
+
+The final constructor scan also covers fractional duration seconds. Their
+construction reuses bounded numeric admission and a scoped context; duration
+spellings are capped at 8192 bytes. This cap is library policy. Invalid temporal
+at-literal data returns the existing tagged literal error instead of leaking a
+constructor exception. This is not a redesign of temporal arithmetic or a claim
+of complete temporal conformance.

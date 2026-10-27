@@ -38,7 +38,7 @@ defmodule Boxic.FEEL.Tokenizer do
       {:ok, value, remaining} ->
         case parse_at_literal(value) do
           {:ok, temporal} -> tokenize(remaining, [{:literal, temporal} | acc])
-          :error -> {:error, error(:invalid_syntax, "invalid at-literal")}
+          _error -> {:error, error(:invalid_syntax, "invalid at-literal")}
         end
 
       :error ->

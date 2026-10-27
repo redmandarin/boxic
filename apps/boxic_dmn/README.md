@@ -222,8 +222,10 @@ model, use `Boxic.DMN.validate(model, for: :evaluation, profile: :bounded_v1)`.
 Use `profile: :bounded_v1` on ordinary/traced evaluation to enforce the same gate.
 The profile checks all supported expression/test positions and unused branches.
 It excludes exp/log, dynamic calls, FEEL function definitions, callback-taking
-sort/list-replace, BKMs, imports and boxed invocation/functions. Powers require a
-literal integer exponent with magnitude at most 1024. Callable inputs and external
+sort/list-replace, BKMs, imports and boxed invocation/functions. Powers accept
+literal and dynamic integer exponents with magnitude at most 1024,
+checked at execution. Fractional values are rejected; a dynamic value beyond the
+resource cap returns `:execution_limit_exceeded`. Callable inputs and external
 function registries are rejected. Legacy evaluation is still available and does
 not imply qualification under this profile.
 

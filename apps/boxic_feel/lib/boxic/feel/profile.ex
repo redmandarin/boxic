@@ -3,10 +3,56 @@ defmodule Boxic.FEEL.Profile do
   Static, conservative capability gate for the `:bounded_v1` FEEL profile.
   This is a library profile policy, not a new FEEL semantics or certification.
   All branches and function references are checked without executing expressions.
+  Dynamic power operands are admitted statically, with integer/domain/resource
+  checks at actual execution. The context marker is invocation-local.
   """
   alias Boxic.FEEL.{AST, Builtins, Error, Parser, Tokenizer}
 
   @excluded ~w(exp log sort list_replace)
+  @exponent_domain 999_999_999
+  @exponent_limit 1024
+
+  @doc false
+  def attach(context, opts) do
+    case Keyword.get(opts, :profile) do
+      nil ->
+        {:ok, context}
+
+      :bounded_v1 ->
+        if Keyword.has_key?(opts, :external_functions),
+          do: unsupported("external functions are outside bounded_v1"),
+          else: {:ok, Map.put(context, __MODULE__, :bounded_v1)}
+
+      _ ->
+        {:error, Error.new(:invalid_option, "unknown evaluation profile")}
+    end
+  end
+
+  @doc false
+  def power_exponent(nil), do: {:ok, nil}
+
+  def power_exponent(%Decimal{} = value) do
+    cond do
+      not Decimal.integer?(value) ->
+        unsupported("fractional exponents are outside bounded_v1")
+
+      outside?(value, @exponent_domain) ->
+        {:ok, nil}
+
+      outside?(value, @exponent_limit) ->
+        {:error,
+         Error.new(
+           :execution_limit_exceeded,
+           "bounded_v1 integer exponent magnitude exceeds #{@exponent_limit}"
+         )}
+
+      true ->
+        {:ok, Decimal.to_integer(value)}
+    end
+  end
+
+  def power_exponent(_value),
+    do: {:error, Error.new(:type_error, "exponentiation requires numbers")}
 
   @spec validate(String.t(), :expression | :unary_tests) :: :ok | {:error, Error.t()}
   def validate(source, grammar \\ :expression)
@@ -49,7 +95,8 @@ defmodule Boxic.FEEL.Profile do
   def validate_data(value) when is_tuple(value), do: value |> Tuple.to_list() |> validate_data()
   def validate_data(_value), do: :ok
 
-  defp validate_ast(ast) do
+  @doc false
+  def validate_ast(ast) do
     with :ok <- AST.validate(ast), do: supported(ast)
   end
 
@@ -70,15 +117,13 @@ defmodule Boxic.FEEL.Profile do
     do: unsupported("dynamic function calls are outside bounded_v1")
 
   defp supported({:binary, :pow, base, exponent}) do
-    case integer_exponent(exponent) do
-      {:ok, integer} when abs(integer) <= 1024 ->
-        supported(base)
+    with :ok <- supported(base),
+         :ok <- supported(exponent),
+         do: literal_exponent(exponent)
+  end
 
-      _ ->
-        unsupported(
-          "bounded_v1 powers require a literal integer exponent of magnitude at most 1024"
-        )
-    end
+  defp supported({:literal, value}) do
+    with {:ok, value} <- Boxic.FEEL.Number.admit(value), do: validate_data(value)
   end
 
   defp supported(ast) when is_tuple(ast), do: ast |> Tuple.to_list() |> supported()
@@ -94,16 +139,21 @@ defmodule Boxic.FEEL.Profile do
 
   defp supported(_value), do: :ok
 
-  defp integer_exponent({:unary, :negate, ast}) do
-    with {:ok, integer} <- integer_exponent(ast), do: {:ok, -integer}
+  defp literal_exponent({:unary, :negate, ast}), do: literal_exponent(ast)
+
+  defp literal_exponent({:literal, %Decimal{} = value}) do
+    with {:ok, value} <- Boxic.FEEL.Number.admit(value) do
+      case power_exponent(value) do
+        {:ok, _value} -> :ok
+        {:error, %Error{message: message}} -> unsupported(message)
+      end
+    end
   end
 
-  defp integer_exponent({:literal, %Decimal{} = value}) do
-    if Decimal.equal?(value, Decimal.round(value, 0, :down)),
-      do: {:ok, Decimal.to_integer(value)},
-      else: :error
-  end
+  defp literal_exponent(_ast), do: :ok
 
-  defp integer_exponent(_ast), do: :error
+  defp outside?(value, magnitude),
+    do: Decimal.compare(value, -magnitude) == :lt or Decimal.compare(value, magnitude) == :gt
+
   defp unsupported(message), do: {:error, Error.new(:unsupported_profile, message)}
 end

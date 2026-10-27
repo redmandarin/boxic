@@ -24,13 +24,12 @@ defmodule Boxic.FEEL.MathematicsProfileTest do
     assert value == Decimal.new("0.7071067811865475244008443621048490")
   end
 
-  test "profile gate rejects deferred functions, aliases, dynamic powers and hidden branches" do
+  test "profile gate rejects deferred functions, aliases, fractional powers and hidden branches" do
     for source <- [
           "exp(1)",
           "if false then log(2) else 1",
           "{f: exp, r: f(1)}",
           "2 ** 0.5",
-          "2 ** x",
           "f(1)",
           "(function(x) x)(1)",
           "sort([1], f)",
@@ -39,7 +38,15 @@ defmodule Boxic.FEEL.MathematicsProfileTest do
       assert {:error, %FEEL.Error{code: :unsupported_profile}} = FEEL.Profile.validate(source)
     end
 
-    for source <- ["mean([1,0,0])", "sqrt(2)", "stddev([1,2])", "2 ** -3", "2 ** 1024"] do
+    for source <- [
+          "mean([1,0,0])",
+          "sqrt(2)",
+          "stddev([1,2])",
+          "2 ** -3",
+          "2 ** 1024",
+          "2 ** x",
+          "2 ** (x / 2)"
+        ] do
       assert :ok = FEEL.Profile.validate(source)
     end
 

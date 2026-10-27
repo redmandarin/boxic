@@ -18,7 +18,16 @@ defmodule Boxic.FEEL do
   numeric admission and does not establish complete model/runtime validity.
   """
 
-  alias Boxic.FEEL.{Arithmetic, AST, Error, Evaluator, ExternalFunctions, Parser, Tokenizer}
+  alias Boxic.FEEL.{
+    Arithmetic,
+    AST,
+    Error,
+    Evaluator,
+    ExternalFunctions,
+    Parser,
+    Profile,
+    Tokenizer
+  }
 
   @type ast ::
           {:literal, term()}
@@ -49,9 +58,7 @@ defmodule Boxic.FEEL do
   def evaluate_bounded(expression, context \\ %{}, limits \\ []) do
     Boxic.FEEL.Execution.run(
       fn ->
-        with :ok <- Boxic.FEEL.Profile.validate(expression),
-             :ok <- Boxic.FEEL.Profile.validate_data(context),
-             do: evaluate(expression, context)
+        evaluate(expression, context, profile: :bounded_v1)
       end,
       limits
     )
@@ -120,7 +127,7 @@ defmodule Boxic.FEEL do
     end)
   end
 
-  @doc "Evaluates FEEL with a trusted external-function environment."
+  @doc "Evaluates FEEL with a trusted external-function environment or the opt-in bounded_v1 profile."
   @spec evaluate(String.t(), context(), keyword()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate(expression, context, opts)
       when is_binary(expression) and is_map(context) and is_list(opts) do
@@ -136,14 +143,14 @@ defmodule Boxic.FEEL do
   @spec evaluate_ast(ast(), context()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate_ast(ast, context) when is_map(context) do
     Arithmetic.with_context(fn ->
-      with :ok <- AST.validate(ast),
+      with :ok <- validate_evaluation_ast(ast, context),
            {:ok, context} <- Boxic.FEEL.Number.admit(context),
            {:ok, value} <- Evaluator.eval(ast, context),
            do: Boxic.FEEL.Number.admit(value)
     end)
   end
 
-  @doc "Evaluates a parsed AST with a trusted external-function environment."
+  @doc "Evaluates a parsed AST with external-function options or profile: :bounded_v1."
   @spec evaluate_ast(ast(), context(), keyword()) :: {:ok, term()} | {:error, Error.t()}
   def evaluate_ast(ast, context, opts) when is_map(context) and is_list(opts) do
     Arithmetic.with_context(fn ->
@@ -162,43 +169,55 @@ defmodule Boxic.FEEL do
   def evaluate_unary_test(test_expression, value, context \\ %{})
       when is_binary(test_expression) and is_map(context) do
     Arithmetic.with_context(fn ->
-      with {:ok, value} <- Boxic.FEEL.Number.admit(value),
+      with :ok <- validate_unary_evaluation(test_expression, context),
+           {:ok, value} <- Boxic.FEEL.Number.admit(value),
            {:ok, context} <- Boxic.FEEL.Number.admit(context),
            do: Evaluator.evaluate_unary_test(test_expression, value, context)
     end)
   end
 
-  @doc "Evaluates a unary test with a trusted external-function environment."
+  @doc "Evaluates a unary test with external-function options or profile: :bounded_v1."
   @spec evaluate_unary_test(String.t(), term(), context(), keyword()) ::
           {:ok, boolean()} | {:error, Error.t()}
   def evaluate_unary_test(test_expression, value, context, opts)
       when is_binary(test_expression) and is_map(context) and is_list(opts) do
     Arithmetic.with_context(fn ->
       with {:ok, context} <- evaluator_context(context, opts) do
-        with {:ok, value} <- Boxic.FEEL.Number.admit(value),
-             {:ok, context} <- Boxic.FEEL.Number.admit(context),
-             do: Evaluator.evaluate_unary_test(test_expression, value, context)
+        evaluate_unary_test(test_expression, value, context)
       end
     end)
   end
 
   defp evaluator_context(context, opts) do
-    case Keyword.get(opts, :external_functions) do
-      nil ->
-        {:ok, context}
+    with {:ok, context} <- Profile.attach(context, opts) do
+      case Keyword.get(opts, :external_functions) do
+        nil ->
+          {:ok, context}
 
-      registry ->
-        precedence = Keyword.get(opts, :external_function_precedence, :builtins)
+        registry ->
+          precedence = Keyword.get(opts, :external_function_precedence, :builtins)
 
-        if precedence in [:builtins, :registered] do
-          {:ok, ExternalFunctions.attach(context, registry, precedence)}
-        else
-          {:error,
-           Error.new(
-             :invalid_option,
-             "external_function_precedence must be :builtins or :registered"
-           )}
-        end
+          if precedence in [:builtins, :registered] do
+            {:ok, ExternalFunctions.attach(context, registry, precedence)}
+          else
+            {:error,
+             Error.new(
+               :invalid_option,
+               "external_function_precedence must be :builtins or :registered"
+             )}
+          end
+      end
     end
   end
+
+  defp validate_evaluation_ast(ast, %{Profile => :bounded_v1} = context) do
+    with :ok <- Profile.validate_data(context), do: Profile.validate_ast(ast)
+  end
+
+  defp validate_evaluation_ast(ast, _context), do: AST.validate(ast)
+
+  defp validate_unary_evaluation(expression, %{Profile => :bounded_v1}),
+    do: Profile.validate(expression, :unary_tests)
+
+  defp validate_unary_evaluation(_expression, _context), do: :ok
 end

@@ -85,3 +85,9 @@ The project follows Semantic Versioning. While the package is below version
 - Own native XML validation in a monitored resource process with timeout,
   bounded output, cancellation, native termination and temporary-file cleanup.
 - Numeric admission errors are distinguished from malformed FEEL grammar.
+
+### Dynamic integer-power review correction
+
+- Carry bounded_v1 runtime checks into FEEL cells for ordinary, traced and bounded
+  decision/service evaluation. Dynamic fractional/resource failures preserve real
+  partial trace evidence. Same-model reusable decisions remain supported.

@@ -245,6 +245,16 @@ defmodule Boxic.FEEL.Evaluator do
     end
   end
 
+  def eval({:binary, :pow, left, right}, %{Boxic.FEEL.Profile => :bounded_v1} = context) do
+    with {:ok, base} <- eval(left, context),
+         {:ok, exponent} <- eval(right, context),
+         {:ok, integer} <- Boxic.FEEL.Profile.power_exponent(exponent) do
+      if is_nil(integer),
+        do: {:ok, nil},
+        else: Arithmetic.protect(fn -> decimal_power(base, Decimal.new(integer)) end)
+    end
+  end
+
   def eval({:binary, op, left, right}, context) do
     with {:ok, left_value} <- eval(left, context),
          {:ok, right_value} <- eval(right, context) do

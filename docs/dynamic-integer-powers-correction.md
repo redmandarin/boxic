@@ -14,13 +14,18 @@ only and magnitude at most 1024 are bounded_v1 policies, not the full OMG domain
 The static gate will recursively inspect both power operands, reject known
 fractional literals and known resource-limit violations, and admit dynamic
 expressions. At an actually evaluated power, evaluate each operand once, then
-check the exponent's domain, integrality and magnitude before conversion to a
-native integer or entering integer exponentiation. An out-of-OMG-domain value or
-null produces FEEL null; a fractional value inside the OMG domain returns
+check the exponent's integrality, numeric domain and resource magnitude before conversion to a
+native integer or entering integer exponentiation. An integer outside the OMG domain or
+null produces FEEL null; any fractional value returns
 `:unsupported_profile`; an integer outside the resource cap but inside the OMG
 domain returns `:execution_limit_exceeded`. Existing wrong-base type diagnostics
 remain. Skipped powers perform no runtime exponent check. Fractional powers never
 reach binary-float math in this profile.
+
+The integer-only profile check takes priority: fractional values are rejected even
+when outside the standard exponent range. The standard domain-null rule applies
+to the integral subset accepted by this profile. Non-number exponents keep the
+existing tagged type-error style.
 
 The execution profile will be carried in the existing evaluator context, as the
 trusted external-function/type environments already are, rather than a new

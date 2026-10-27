@@ -48,8 +48,9 @@ rounding built-ins retain their specified modes.
 The final v1 capability excludes exp, log and non-integer exponentiation rather
 than inventing decimal transcendental algorithms. Validation must reject references,
 including aliases and unexecuted branches, not just direct evaluated calls.
-Dynamic function/provider access and exponent values that cannot be established
-statically are outside this opt-in profile. This restriction must be enforceable
+Dynamic function/provider access remains outside this opt-in profile. The final
+review correction admits dynamic integer exponents with runtime checks; see
+[the correction contract](dynamic-integer-powers-correction.md). This restriction must be enforceable
 before a caller accepts a model, with diagnostic element/position paths and no
 fabricated inputs. General legacy evaluation remains available; it is not
 represented as qualified v1 execution. The profile also rejects external functions

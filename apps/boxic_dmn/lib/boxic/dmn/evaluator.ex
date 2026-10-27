@@ -144,7 +144,7 @@ defmodule Boxic.DMN.Evaluator do
   defp attach_external_functions(context, opts) do
     case Keyword.get(opts, :external_functions) do
       nil ->
-        {:ok, context}
+        Boxic.FEEL.Profile.attach(context, opts)
 
       registry ->
         precedence = Keyword.get(opts, :external_function_precedence, :builtins)

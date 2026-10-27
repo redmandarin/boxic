@@ -43,3 +43,10 @@ The project follows Semantic Versioning. While the package is below version
 - Add `Boxic.FEEL.Profile` and `evaluate_bounded/3`; deferred mathematics and
   dynamic call paths are explicitly excluded from the opt-in bounded_v1 profile.
 - Add the monitored `Boxic.FEEL.Execution.run/2` deadline/GC-heap boundary.
+
+### Dynamic integer-power review correction
+
+- Admit dynamic integer exponents under bounded_v1 and enforce integer, OMG-domain
+  and resource checks at execution across source, AST, unary and bounded APIs.
+- Keep fractional powers excluded and legacy unprofiled power capability intact.
+- Avoid an unused terminal square that could overflow a valid large ** 1.

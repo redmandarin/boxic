@@ -196,8 +196,10 @@ rounding functions retain their modes. These changes do not certify all numerics
 
 `Boxic.FEEL.Profile.validate(source)` (or with `:unary_tests`) statically enforces
 the bounded v1 math capability. exp/log, dynamic function calls/definitions,
-callback-taking sort/list-replace and nonliteral/noninteger powers are excluded;
-literal integer powers are bounded to magnitude 1024. All branches and deferred
+callback-taking sort/list-replace and fractional powers are excluded. Literal and
+dynamic integer powers are supported up to magnitude 1024, checked at execution;
+a dynamic value beyond this resource cap returns `:execution_limit_exceeded`.
+All branches and deferred
 function references are checked. General evaluation of excluded functions remains
 legacy behavior, not qualified v1 support.
 
@@ -207,3 +209,10 @@ returns `{:ok, ordinary_evaluation_return}` or a boundary error. For other trust
 entry points, `Boxic.FEEL.Execution.run(fn -> ... end, limits)` provides the same
 worker containment without adding a capability gate. It does not sandbox host
 effects. See that module and the DMN README for heap/deadline responsibilities.
+
+Ordinary source/AST/unary-test APIs also accept `profile: :bounded_v1`. Dynamic
+exponents are evaluated once and checked before integer conversion/power; they
+never select legacy float-backed fractional power. Integer exponents outside the
+OMG Table 60 domain (magnitude 999999999) return null before the resource check.
+Null propagates; wrong exponent types retain a tagged type error. Static validation
+still rejects known fractional/oversized literals and inspects both operands.

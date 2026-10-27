@@ -114,6 +114,8 @@ for path <- [
       "apps/boxic_feel/test/numeric_admission_test.exs",
       "apps/boxic_dmn/test/numeric_admission_test.exs",
       "apps/boxic_feel/test/mathematics_profile_test.exs",
+      "apps/boxic_feel/test/dynamic_power_test.exs",
+      "apps/boxic_dmn/test/dynamic_power_test.exs",
       "apps/boxic_feel/test/execution_boundary_test.exs",
       "apps/boxic_dmn/test/containment_test.exs"
     ] do

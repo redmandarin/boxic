@@ -1,5 +1,7 @@
 # Final Wedge-v1 Boxic qualification checkpoint
 
+Superseded after final review: see [the dynamic integer-power correction](dynamic-integer-powers-correction.md) for the current integration recommendation and profile contract. The source and results below are historical.
+
 Date: 2026-10-27. **Integration candidate: `f3368d3c6779dc163a3f0220213c8b234db3345e`.**
 This is the exact runtime source recommended for review and eventual Wedge
 integration of **both** Boxic applications, subject to the environment check below.

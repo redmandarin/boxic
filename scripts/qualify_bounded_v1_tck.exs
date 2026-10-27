@@ -56,11 +56,28 @@ rows =
                 test_case.expect_error
             end
 
+          runtime_rejection =
+            case ordinary do
+              {:error, %Boxic.FEEL.Error{code: code}}
+              when code in [:unsupported_profile, :execution_limit_exceeded] ->
+                code
+
+              _ ->
+                nil
+            end
+
           %{
             group: test_case.group,
             id: test_case.id,
             decision: test_case.decision_name,
-            status: if(expected_matches and ordinary === traced, do: :passed, else: :failed),
+            status:
+              cond do
+                ordinary !== traced -> :failed
+                not is_nil(runtime_rejection) -> :runtime_excluded
+                expected_matches -> :passed
+                true -> :failed
+              end,
+            runtime_rejection: runtime_rejection,
             exact_trace_equivalence: ordinary === traced
           }
         end)
@@ -116,9 +133,13 @@ report = %{
     |> Map.new(fn {group, rows} ->
       {group, Enum.frequencies_by(rows, & &1.status)}
     end),
+  runtime_exclusions: Enum.filter(rows, &(&1.status == :runtime_excluded)),
   rejected_negative_fixtures: Enum.filter(rows, &(&1.status == :rejected_negative_fixture)),
   failures:
-    Enum.filter(rows, &(&1.status not in [:passed, :excluded, :rejected_negative_fixture]))
+    Enum.filter(
+      rows,
+      &(&1.status not in [:passed, :excluded, :runtime_excluded, :rejected_negative_fixture])
+    )
 }
 
 IO.puts(Jason.encode!(report, pretty: true))
